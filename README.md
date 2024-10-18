@@ -36,16 +36,109 @@ flowchart LR
 flowchart TD
     B[Initialize Event List]
     C{{Is Event List Empty?}}
-    D[Process next event]
+    D[Get next event from List]
+    Time[Advance System Clock]
+    E[Process event]
+    A[Log Processed Event]
+    F[Create Subscriptions]
+    G[Process all events subscribed to the current event]
     Start-->B
     B-->C
-    C-- yes -->Stop
     C-- no -->D
-    D --> C
+    D-->Time
+    Time-->E
+    E-->A
+    A-->F
+    F-->G
+    G-->C
+    C-- yes -->Stop
 ```
 
 ## Initialize Event List
 
 ```mermaid
 flowchart TD
+    A[Initialize Empty Event List]
+    B[Get the arrival distribution of every node and entity class]
+    C[Generate Arrival events for each node and entity class combination]
+    D[Add Events to List]
+    A-->B
+    B-->C
+    C-->D 
 ```
+
+## Process event
+
+Process the event based on it's type.
+
+### Arrival Event
+
+Input:
+
+- Entity Class
+- Number of arriving entities
+- Node
+
+```mermaid
+flowchart TD
+    A{{Is NodeQueue empty?}}
+    C{{Any idle server?}}
+    MakeBusy[Mark Server as busy]
+    D[Add entities to queue]
+    E[Create Service Completion Event]
+    F[Add created event to the Event List]
+    Stop
+    A -- yes --> C
+    C -- yes --> MakeBusy
+    A -- no --> D
+    MakeBusy --> E
+    C -- no --> D
+    E-->F
+    F-->Stop
+    D --> Stop
+```
+
+### Complete Service Event
+
+```mermaid
+flowchart TD
+    IsSink{{Is current Node a Sink?}}
+    SelectDestination[Select destination Node]
+    CreateLeaveServerEvent[Create Leave Server Event]
+    IsQueueFull{{Is the target node queue full?}}
+    AddToOverflowQueue[Add Entity to Overflow Queue of Destination Node]
+    IsSink -- yes --> CreateLeaveServerEvent
+    IsSink -- no --> SelectDestination
+    CreateLeaveServerEvent --> Stop
+    SelectDestination --> IsQueueFull
+    IsQueueFull -- no --> CreateLeaveServerEvent
+    IsQueueFull -- yes --> AddToOverflowQueue
+    AddToOverflowQueue --> Stop
+```
+
+### Leave Server Event
+
+```mermaid
+flowchart TD
+    CreateArrivalEvent[Create Arrival Event]
+    MarkServerIdle[Mark Server Idle]
+    IsQueueEmpty{{Is Queue from leaving Node empty?}}
+    DequeueEntity[Dequeue entity]
+    CreateCompleteServiceEvent[Create Complete Service Event]
+    CreateOverflowArrivalEvent[Create Arrival Event for overflow entity]
+    IsQueueEmpty -- yes --> MarkServerIdle
+    MarkServerIdle --> CreateArrivalEvent
+    IsQueueEmpty -- no --> DequeueEntity
+    DequeueEntity --> CreateCompleteServiceEvent
+    CreateCompleteServiceEvent --> CreateArrivalEvent
+    CreateArrivalEvent --> IsOverflowQueueEmpty
+    IsOverflowQueueEmpty -- yes --> Stop
+    IsOverflowQueueEmpty -- no --> CreateOverflowArrivalEvent
+    CreateOverflowArrivalEvent --> Stop
+```
+
+## Create Subscriptions
+
+ToDo: Here we need a type check or something similar. And depending on the type of the event, that event might trigger the creation of new events which subscribe to another event. This sounds complex, but here is an example. If a an Arrival event is processed, it might add an event like `CheckJockeyingEvent` and subscribe it to `CompleteServiceEvent` of the current or neighboring queues.
+
+Replace this explanation with more flow charts later on.
