@@ -1,0 +1,44 @@
+﻿namespace QueueSharp.StructureTypes;
+internal readonly struct Interval
+{
+    public int Start { get; }
+    public int End { get; }
+
+    // Constructor to initialize start and end of the interval
+    public Interval(int start, int end)
+    {
+        if (start > end)
+        {
+            throw new ArgumentException("Start cannot be greater than End.");
+        }
+        Start = start;
+        End = end;
+    }
+
+    /// <summary>
+    /// Check if the given value is within the interval.
+    /// </summary>
+    /// <returns>Returns true, if the value is between the start and end (or equal to start or end).</returns>
+    public bool IsInRange(int value)
+    {
+        return value >= Start && value <= End;
+    }
+
+    /// <summary>
+    /// Determines if this interval overlaps with another interval. 
+    /// Overlap occurs if the intervals share any portion of their ranges, 
+    /// excluding cases where one interval ends exactly when the other begins.
+    /// </summary>
+    /// <param name="other">The interval to compare for overlap.</param>
+    /// <returns>True if the intervals overlap, false if they are adjacent or do not overlap.</returns>
+
+    public bool Overlaps(Interval other)
+    {
+        return Start < other.End && End > other.Start;
+    }
+
+    public override string ToString()
+    {
+        return $"[{Start}, {End}]";
+    }
+}

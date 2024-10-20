@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace QueueSharp.Model.Components;
+﻿namespace QueueSharp.Model.Components;
 internal class State
 {
+    public required EventList EventList { get; init; }
 }

@@ -7,17 +7,26 @@ internal class EventProcessor
 {
     private readonly State _state;
 
-    public EventProcessor(State state)
+    internal EventProcessor(State state)
     {
         _state = state;
     }
 
-    internal void ProcessArrival(ArrivalEvent arrivalEvent)
+    internal void ProcessEvents()
+    {
+        while (!_state.EventList.IsEmpty)
+        {
+            IEvent currentEvent = _state.EventList.Dequeue();
+            ProcessEvent(currentEvent);
+        }
+    }
+
+    private void ProcessArrival(ArrivalEvent arrivalEvent)
     {
         throw new NotImplementedException();
     }
 
-    internal void ProcessEvent(IEvent @event)
+    private void ProcessEvent(IEvent @event)
     {
         switch (@event) {
             case ArrivalEvent arrivalEvent:
