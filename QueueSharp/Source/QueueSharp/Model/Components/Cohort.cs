@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using QueueSharp.Model.DurationDistribution;
 
 namespace QueueSharp.Model.Components;
-public record Cohort
+internal record Cohort
 {
-    public Cohort(IDictionary<Node, >)
+    internal Cohort(IDictionary<Node, DurationDistributionSelector> arrivalDistributionPerNode)
     {
-        
+
     }
 }

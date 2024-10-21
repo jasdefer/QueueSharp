@@ -1,5 +1,5 @@
 ﻿namespace QueueSharp.Model.DurationDistribution;
-internal interface IDurationDistribution
+public interface IDurationDistribution
 {
     int GetDuration();
 }

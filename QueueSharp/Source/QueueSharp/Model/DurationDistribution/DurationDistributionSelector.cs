@@ -1,40 +1,49 @@
-﻿using QueueSharp.Model.Exceptions;
+﻿using QueueSharp.Model.Helper;
 using QueueSharp.StructureTypes;
-using System.Collections.Immutable;
 
 namespace QueueSharp.Model.DurationDistribution;
 
-internal record ArrivalDistribution(DurationDistributionSelector DurationDistributionSelector, int ArrivalBatchSize = 1);
-internal record DurationDistributionSelector
+internal record DurationDistributionSelector : IntervalDictionary<IDurationDistribution>
 {
-    private readonly ImmutableArray<(Interval, IDurationDistribution)> _durationDistributions;
+    private readonly Random _random;
 
-    internal DurationDistributionSelector(IEnumerable<(Interval, IDurationDistribution)> durationDistributions)
+    internal DurationDistributionSelector(IEnumerable<(Interval, IDurationDistribution)> durationDistributions, int? randomSeed = null)
+        : base(durationDistributions)
     {
-        if (durationDistributions.Any(x => durationDistributions.Any(y => x.Item1.Overlaps(y.Item1))))
-        {
-            throw new InvalidInputException($"Duration Distributions Overlap");
-        }
-        _durationDistributions = durationDistributions.OrderBy(x => x.Item1.Start)
-            .ToImmutableArray();
+        _random = randomSeed is null
+            ? new Random()
+            : new Random(randomSeed.Value);
     }
 
-    internal int? GetDuration(int time)
+    internal bool TryGetArrivalTime(int time, out int? arrival, bool isInitialArrival = false)
     {
-        for (int i = 0; i < _durationDistributions.Length; i++)
+        arrival = 0;
+        double fraction = isInitialArrival
+            ? _random.NextDouble()
+            : 1;
+
+        for (int i = 0; i < _values.Length; i++)
         {
-            (Interval interval, IDurationDistribution distribution) = _durationDistributions[i];
-            if (interval.IsInRange(time))
+            (Interval interval, IDurationDistribution distribution) = _values[i];
+            if (interval.End < time)
             {
-                int duration = distribution.GetDuration();
-                // ToDo: Handle fuzzyness at the end of an interval
-                // If an interval is [0;10] and at the time 9 the duration 6 is generated, the end of the duration is way after the end of that interval
-                // Durating the next interval a total different distribution is active
-                return duration;
+                continue;
             }
+
+            time = Math.Max(time, interval.Start);
+
+            int currentDuration = (int)Math.Round(fraction * distribution.GetDuration());
+            int end = time + currentDuration;
+            if (end <= interval.End)
+            {
+                arrival = time + currentDuration;
+                return true;
+            }
+
+            fraction = 1 - (interval.End - time) / (double)currentDuration;
         }
 
-        // ToDo: Improve return type, if no duration can be generated
-        return null;
+        arrival = null;
+        return false;
     }
 }

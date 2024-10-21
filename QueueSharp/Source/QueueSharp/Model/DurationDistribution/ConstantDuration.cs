@@ -1,9 +1,9 @@
 ﻿namespace QueueSharp.Model.DurationDistribution;
-internal class ConstantDuration : IDurationDistribution
+public class ConstantDuration : IDurationDistribution
 {
     private readonly int _duration;
 
-    internal ConstantDuration(int duration)
+    public ConstantDuration(int duration)
     {
         _duration = duration;
     }

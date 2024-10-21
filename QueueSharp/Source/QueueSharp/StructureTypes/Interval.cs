@@ -1,5 +1,5 @@
 ﻿namespace QueueSharp.StructureTypes;
-internal readonly struct Interval
+public readonly struct Interval : IEquatable<Interval>
 {
     public int Start { get; }
     public int End { get; }
@@ -31,7 +31,6 @@ internal readonly struct Interval
     /// </summary>
     /// <param name="other">The interval to compare for overlap.</param>
     /// <returns>True if the intervals overlap, false if they are adjacent or do not overlap.</returns>
-
     public bool Overlaps(Interval other)
     {
         return Start < other.End && End > other.Start;
@@ -40,5 +39,31 @@ internal readonly struct Interval
     public override string ToString()
     {
         return $"[{Start}, {End}]";
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Interval interval && Equals(interval);
+    }
+
+    public bool Equals(Interval other)
+    {
+        return Start == other.Start &&
+               End == other.End;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Start, End);
+    }
+
+    public static bool operator ==(Interval left, Interval right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Interval left, Interval right)
+    {
+        return !(left == right);
     }
 }

@@ -28,7 +28,8 @@ internal class EventProcessor
 
     private void ProcessEvent(IEvent @event)
     {
-        switch (@event) {
+        switch (@event)
+        {
             case ArrivalEvent arrivalEvent:
                 ProcessArrival(arrivalEvent);
                 return;

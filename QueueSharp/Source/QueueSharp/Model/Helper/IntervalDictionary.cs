@@ -1,10 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using QueueSharp.Model.Exceptions;
+using QueueSharp.StructureTypes;
+using System.Collections.Immutable;
 
 namespace QueueSharp.Model.Helper;
-internal class IntervalDictionary
+internal record IntervalDictionary<TValue>
 {
+    protected readonly ImmutableArray<(Interval, TValue)> _values;
+
+    public IntervalDictionary(IEnumerable<(Interval, TValue)> values)
+    {
+        if (values.Any(x => values.Any(y => x.Item1 != y.Item1 && x.Item1.Overlaps(y.Item1))))
+        {
+            throw new InvalidInputException($"Duration Distributions Overlap");
+        }
+        _values = values
+            .OrderBy(x => x.Item1.Start)
+            .ToImmutableArray();
+    }
+
+    public bool TryGetAtTime(int time, out int? index, out TValue? value)
+    {
+        index = null;
+        value = default;
+        // ToDo: Implement Binary Search to improve performance
+        for (int i = 0; i < _values.Length; i++)
+        {
+            (Interval currentInterval, TValue currentValue) = _values[i];
+
+            if (currentInterval.IsInRange(time))
+            {
+                index = i;
+                value = currentValue;
+                return true;
+            }
+            if (currentInterval.Start > time)
+            {
+                return false;
+            }
+        }
+        return false;
+    }
 }
