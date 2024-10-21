@@ -5,6 +5,7 @@ namespace QueueSharp.Model.DurationDistribution;
 
 internal record DurationDistributionSelector : IntervalDictionary<IDurationDistribution>
 {
+    public static DurationDistributionSelector Empty = new DurationDistributionSelector(Array.Empty<(Interval, IDurationDistribution)>());
     private readonly Random _random;
 
     internal DurationDistributionSelector(IEnumerable<(Interval, IDurationDistribution)> durationDistributions, int? randomSeed = null)

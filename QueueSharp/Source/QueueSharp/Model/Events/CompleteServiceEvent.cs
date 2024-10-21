@@ -1,6 +1,7 @@
 ﻿using QueueSharp.Model.Components;
 
 namespace QueueSharp.Model.Events;
-internal record ArrivalEvent(int Timestamp,
+internal record CompleteServiceEvent(int Timestamp,
+    int Server,
     Individual Individual,
     Node Node) : IEvent;
