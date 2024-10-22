@@ -1,5 +1,5 @@
 ﻿namespace QueueSharp.Model.Components;
-internal class Node
+public class Node
 {
     /// <summary>
     /// The unique identifier for the Node

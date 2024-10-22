@@ -1,7 +1,7 @@
 ﻿using QueueSharp.Model.Events;
 
 namespace QueueSharp.Model.Components;
-internal class EventList
+public class EventList
 {
     /// <summary>
     /// The list of events
@@ -9,14 +9,14 @@ internal class EventList
     /// </summary>
     private readonly List<IEvent> _events = [];
 
-    public IEvent Dequeue()
+    internal IEvent Dequeue()
     {
         IEvent @event = _events[0];
         _events.RemoveAt(0);
         return @event;
     }
 
-    public void Insert(IEvent newEvent)
+    internal void Insert(IEvent newEvent)
     {
         // ToDo: Use heap to improve performance
         for (int i = 0; i < _events.Count; i++)

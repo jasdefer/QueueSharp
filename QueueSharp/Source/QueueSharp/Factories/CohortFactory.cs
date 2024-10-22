@@ -6,9 +6,9 @@ using QueueSharp.StructureTypes;
 using System.Collections.Frozen;
 
 namespace QueueSharp.Factories;
-internal static class CohortFactory
+public static class CohortFactory
 {
-    internal static Cohort[] GetSingleNode(string nodeId,
+    public static Cohort[] GetSingleNode(string nodeId,
         int serverCount,
         IServerSelector? serverSelector = null)
     {
@@ -34,39 +34,45 @@ internal static class CohortFactory
         return cohorts;
     }
 
-    internal static Cohort[] GetEventEntrance(IServerSelector? serverSelector = null)
+    public static Cohort[] GetEventEntrance(IServerSelector? serverSelector = null,
+        double arrivalScaleFactor = 1,
+        double arrivalInterfalFactor = 1)
     {
+        int[] times = [0,
+            (int)(1000 * arrivalInterfalFactor),
+            (int)(2000 * arrivalInterfalFactor),
+            (int)(3000 * arrivalInterfalFactor)];
         Node[] nodes = [
             new Node("Ticket Gate", serverCount: 3),
             new Node("Bag Inspection", serverCount: 4),
             new Node("Person Metal Detector", serverCount: 2),
             ];
         DurationDistributionSelector arrivalPersonsWithoutATicket = new([
-            IntervalForConstantDuration(start: 0, end: 1000, duration: 30),
-            IntervalForConstantDuration(start: 1000, end: 2000, duration: 15),
-            IntervalForConstantDuration(start: 2000, end: 3000, duration: 45),
+            IntervalForConstantDuration(start: times[0], end: times[1], duration: (int)(30 * arrivalScaleFactor)),
+            IntervalForConstantDuration(start: times[1], end: times[2], duration: (int)(15 * arrivalScaleFactor)),
+            IntervalForConstantDuration(start: times[2], end: times[3], duration: (int)(45 * arrivalScaleFactor)),
             ], 1);
         DurationDistributionSelector arrivalPersonsWithATicketWithBag = new([
-            IntervalForConstantDuration(start: 0, end: 1000, duration: 20),
-            IntervalForConstantDuration(start: 1000, end: 2000, duration: 10),
-            IntervalForConstantDuration(start: 2000, end: 3000, duration: 30),
+            IntervalForConstantDuration(start: times[0], end: times[1],duration: (int)(20 * arrivalScaleFactor)),
+            IntervalForConstantDuration(start: times[1], end: times[2], duration: (int)(10 * arrivalScaleFactor)),
+            IntervalForConstantDuration(start: times[2], end: times[3], duration: (int)(30 * arrivalScaleFactor)),
             ], 1);
         DurationDistributionSelector arrivalPersonsWithATicketWithoutBag = new([
-            IntervalForConstantDuration(start: 0, end: 1000, duration: 20),
-            IntervalForConstantDuration(start: 1000, end: 2000, duration: 10),
-            IntervalForConstantDuration(start: 2000, end: 3000, duration: 30),
+            IntervalForConstantDuration(start: times[0], end: times[1], duration: (int)(20 * arrivalScaleFactor)),
+            IntervalForConstantDuration(start: times[1], end: times[2], duration: (int)(10 * arrivalScaleFactor)),
+            IntervalForConstantDuration(start: times[2], end: times[3], duration: (int)(30 * arrivalScaleFactor)),
             ], 1);
         DurationDistributionSelector ticketCheckpointService = new([
-            IntervalForConstantDuration(start: 0, end: 5000, duration: 12)
+            IntervalForConstantDuration(start: 0, end: times[^1]*3, duration: 12)
             ], 1);
         DurationDistributionSelector bagInspection = new([
-            IntervalForConstantDuration(start: 0, end: 5000, duration: 30)
+            IntervalForConstantDuration(start: 0, times[^1]*3, duration: 30)
             ], 1);
         DurationDistributionSelector metalDetectorServiceWithoutBag = new([
-            IntervalForConstantDuration(start: 0, end: 5000, duration: 10)
+            IntervalForConstantDuration(start: 0, times[^1]*3, duration: 10)
             ]);
         DurationDistributionSelector metalDetectorServiceWithBag = new([
-            IntervalForConstantDuration(start: 0, end: 5000, duration: 15)
+            IntervalForConstantDuration(start: 0, times[^1]*3, duration: 15)
             ], 1);
 
         IRouting nonTicketHolderRouting = new RandomRouteSelection(arcs: [], QueueIsFullBehavior.Baulk, 1);

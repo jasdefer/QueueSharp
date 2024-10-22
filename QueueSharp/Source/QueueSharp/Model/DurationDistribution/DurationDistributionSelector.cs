@@ -3,7 +3,7 @@ using QueueSharp.StructureTypes;
 
 namespace QueueSharp.Model.DurationDistribution;
 
-internal record DurationDistributionSelector : IntervalDictionary<IDurationDistribution>
+public record DurationDistributionSelector : IntervalDictionary<IDurationDistribution>
 {
     public static DurationDistributionSelector Empty = new DurationDistributionSelector(Array.Empty<(Interval, IDurationDistribution)>());
     private readonly Random _random;

@@ -3,7 +3,7 @@ using QueueSharp.StructureTypes;
 using System.Collections.Immutable;
 
 namespace QueueSharp.Model.Helper;
-internal record IntervalDictionary<TValue>
+public record IntervalDictionary<TValue>
 {
     protected readonly ImmutableArray<(Interval, TValue)> _values;
 

@@ -6,13 +6,13 @@ using QueueSharp.Model.Routing;
 using System.Collections.Immutable;
 
 namespace QueueSharp.Logic;
-internal class Simulation
+public class Simulation
 {
     private State? _state;
     private int _time = 0;
     private readonly SimulationSettings _simulationSettings;
 
-    internal Simulation(IEnumerable<Cohort> cohorts,
+    public Simulation(IEnumerable<Cohort> cohorts,
         SimulationSettings? simulationSettings = null)
     {
         Cohorts = cohorts.ToImmutableArray();
@@ -21,7 +21,7 @@ internal class Simulation
 
     public ImmutableArray<Cohort> Cohorts { get; }
 
-    internal ImmutableArray<ActivityLog> Start(CancellationToken? cancellationToken = null)
+    public ImmutableArray<ActivityLog> Start(CancellationToken? cancellationToken = null)
     {
         Initialize();
         ProcessEvents(cancellationToken ?? CancellationToken.None);
@@ -54,7 +54,7 @@ internal class Simulation
         }
     }
 
-    internal void ProcessEvents(CancellationToken cancellationToken)
+    private void ProcessEvents(CancellationToken cancellationToken)
     {
         while (!_state!.EventList.IsEmpty)
         {

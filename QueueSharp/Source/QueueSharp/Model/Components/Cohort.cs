@@ -5,12 +5,12 @@ using System.Collections.Frozen;
 
 namespace QueueSharp.Model.Components;
 
-internal record NodeProperties(DurationDistributionSelector DurationDistributionSelector,
+public record NodeProperties(DurationDistributionSelector DurationDistributionSelector,
     DurationDistributionSelector ServiceDurationSelector,
     IServerSelector ServerSelector,
     int ArrivalBatchSize = 1);
 
-internal record Cohort(string Id,
+public record Cohort(string Id,
     FrozenDictionary<Node, NodeProperties> PropertiesByNode,
     IRouting Routing,
     int ArrivalBatchSize = 1)

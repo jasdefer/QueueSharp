@@ -7,13 +7,13 @@ public enum QueueIsFullBehavior
     Baulk
 }
 
-internal interface IRouting
+public interface IRouting
 {
     RoutingDecision RouteAfterService(Node origin, State state);
 }
-internal abstract record RoutingDecision;
-internal sealed record ExitSystem : RoutingDecision
+public abstract record RoutingDecision;
+public sealed record ExitSystem : RoutingDecision
 {
     internal static ExitSystem StaticInstance { get; } = new ExitSystem();
 };
-internal sealed record SeekDestination(Node Destination, QueueIsFullBehavior QueueIsFullBehavior) : RoutingDecision;
+public sealed record SeekDestination(Node Destination, QueueIsFullBehavior QueueIsFullBehavior) : RoutingDecision;

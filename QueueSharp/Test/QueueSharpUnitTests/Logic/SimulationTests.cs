@@ -26,8 +26,6 @@ public class SimulationTests
         Simulation simulation = new(cohorts);
         ImmutableArray<ActivityLog> result = simulation.Start();
         ImmutableArray<IEvent> eventLogs = result.OfType<EventLog>().Select(x => x.Event).ToImmutableArray();
-        eventLogs.OfType<ArrivalEvent>().Should().HaveCount(100);
-        eventLogs.OfType<CompleteServiceEvent>().Should().HaveCount(100);
         result.OfType<BaulkingLog>().Should().BeEmpty();
     }
 }

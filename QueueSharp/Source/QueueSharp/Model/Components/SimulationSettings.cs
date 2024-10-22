@@ -1,2 +1,2 @@
 ﻿namespace QueueSharp.Model.Components;
-internal record SimulationSettings(int? MaxTime);
+public record SimulationSettings(int? MaxTime);
