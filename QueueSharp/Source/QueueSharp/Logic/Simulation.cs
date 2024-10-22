@@ -21,11 +21,13 @@ public class Simulation
 
     public ImmutableArray<Cohort> Cohorts { get; }
 
-    public ImmutableArray<ActivityLog> Start(CancellationToken? cancellationToken = null)
+    public IEnumerable<NodeVisitRecord> Start(CancellationToken? cancellationToken = null)
     {
+        _time = 0;
+
         Initialize();
         ProcessEvents(cancellationToken ?? CancellationToken.None);
-        return _state!.ActivityLogs.ToImmutableArray();
+        return _state!.NodeVisitRecords;
     }
 
     private void Initialize()
@@ -63,8 +65,6 @@ public class Simulation
             {
                 return;
             }
-            EventLog eventLog = new EventLog(currentEvent);
-            _state.ActivityLogs.Add(eventLog);
             ProcessEvent(currentEvent);
 
             if (cancellationToken.IsCancellationRequested)
@@ -77,6 +77,10 @@ public class Simulation
     private void ProcessEvent(IEvent @event)
     {
         _time = @event.Timestamp;
+        if(_time > int.MaxValue - 1000)
+        {
+            throw new InvalidInputException("Simulation time is too long.");
+        }
         switch (@event)
         {
             case ArrivalEvent arrivalEvent:
@@ -84,7 +88,7 @@ public class Simulation
                 CreateArrivalEvent(arrivalEvent.Individual.Cohort, arrivalEvent.Node);
                 return;
             case CompleteServiceEvent completeServiceEvent:
-                CompleteService(completeServiceEvent.Individual, completeServiceEvent.Node, completeServiceEvent.Server);
+                CompleteService(completeServiceEvent.Individual, completeServiceEvent.Node, completeServiceEvent.ArrivalTime, completeServiceEvent.Server);
                 return;
             default:
                 throw new NotImplementedEventException(@event.GetType().Name);
@@ -93,18 +97,19 @@ public class Simulation
 
     private void IndividualArrives(Individual individual, Node destination)
     {
+        _state!.AddArrival(individual, destination, _time);
         if (destination.IsQueueEmpty)
         {
-            TryServerIndividual(individual, destination);
+            TryServerIndividual(individual, destination, _time);
             return;
         }
 
         if (destination.IsQueueFull)
         {
-            BaulkIndividual(individual, destination);
+            _state!.Baulk(individual, destination, _time, BaulkingReson.QueueFull);
             return;
         }
-        EnqueueIndividual(individual, destination);
+        destination.Queue.Add((individual, _time));
     }
 
     private void CreateArrivalEvent(Cohort cohort, Node destination, bool isInitialArrival = false)
@@ -123,9 +128,10 @@ public class Simulation
         _state!.EventList.Insert(arrivalEvent);
     }
 
-    private void CompleteService(Individual individual, Node origin, int server)
+    private void CompleteService(Individual individual, Node origin, int arrivalTime, int server)
     {
-        bool individualLeavesOrigin = TryLeaveIndividual(individual, origin);
+        _state!.CompleteService(individual, origin, arrivalTime, _time);
+        bool individualLeavesOrigin = TryLeaveIndividual(individual, origin, arrivalTime);
         if (!individualLeavesOrigin)
         {
             return;
@@ -153,17 +159,19 @@ public class Simulation
         IndividualArrives(overflowIndividual, origin);
     }
 
-    private bool TryLeaveIndividual(Individual individual, Node origin)
+    private bool TryLeaveIndividual(Individual individual, Node origin, int arrivalTime)
     {
         RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(origin, _state!);
         switch (routingDecision)
         {
             case ExitSystem:
+                _state!.Exit(individual, origin, arrivalTime, _time);
                 return true;
             case SeekDestination seekDestination:
                 // The individual tries to seek the chosen destination
                 if (!seekDestination.Destination.IsQueueFull)
                 {
+                    _state!.ExitToDestination(individual, origin, arrivalTime, _time, seekDestination.Destination);
                     IndividualArrives(individual, seekDestination.Destination);
                     return true;
                 }
@@ -171,10 +179,12 @@ public class Simulation
                 switch (seekDestination.QueueIsFullBehavior)
                 {
                     case QueueIsFullBehavior.Baulk:
-                        BaulkIndividual(individual, origin);
+                        _state!.Exit(individual, origin, arrivalTime, _time);
+                        _state!.AddArrival(individual, seekDestination.Destination, _time);
+                        _state!.Baulk(individual, seekDestination.Destination, _time, BaulkingReson.QueueFull);
                         return true;
                     case QueueIsFullBehavior.WaitAndBlockCurrentServer:
-                        AddIndividualToOverflowQueue(individual, origin, seekDestination.Destination);
+                        seekDestination.Destination.OverflowQueue.Add(individual);
                         return false;
                     default:
                         throw new NotImplementedEventException(seekDestination.QueueIsFullBehavior.ToString());
@@ -185,7 +195,7 @@ public class Simulation
         }
     }
 
-    private void TryServerIndividual(Individual individual, Node destination)
+    private void TryServerIndividual(Individual individual, Node destination, int arrivalTime)
     {
         NodeProperties nodeProperties = individual.Cohort.PropertiesByNode[destination];
         bool canSelectServer = nodeProperties.ServerSelector.CanSelectServer(destination, out int? selectedServer);
@@ -193,10 +203,10 @@ public class Simulation
         {
             if (destination.IsQueueFull)
             {
-                BaulkIndividual(individual, destination);
+                _state!.Baulk(individual, destination, arrivalTime, BaulkingReson.CannotSelectServer, _time);
                 return;
             }
-            EnqueueIndividual(individual, destination);
+            destination.Queue.Add((individual, arrivalTime));
             return;
         }
         if (selectedServer >= destination.ServerCount ||
@@ -204,57 +214,45 @@ public class Simulation
         {
             throw new ImplausibleStateException($"Cannot select the server {selectedServer} for the Node {destination.Id}.");
         }
-        StartService(individual, destination, nodeProperties.ServiceDurationSelector, selectedServer);
+        TryStartService(individual, destination, nodeProperties.ServiceDurationSelector, arrivalTime, selectedServer.Value);
     }
 
-    private void StartService(Individual individual, Node node, DurationDistributionSelector serviceDurationSelector, int? selectedServer)
+    private bool TryStartService(Individual individual, Node node, DurationDistributionSelector serviceDurationSelector, int arrivalTime, int selectedServer)
     {
-        node.ServingIndividuals[selectedServer!.Value] = individual;
+        node.ServingIndividuals[selectedServer] = individual;
         bool canCompleteService = serviceDurationSelector.TryGetArrivalTime(_time, out int? serviceCompleted, false);
         if (!canCompleteService)
         {
-            BaulkIndividual(individual, node);
-            return;
+            _state!.Baulk(individual, node, arrivalTime, BaulkingReson.CannotCompleteService, _time);
+            return false;
         }
         CompleteServiceEvent completeServiceEvent = new(Timestamp: serviceCompleted!.Value,
-            Server: selectedServer.Value,
+            ArrivalTime: arrivalTime,
+            Server: selectedServer,
             Individual: individual,
             Node: node);
         _state!.EventList.Insert(completeServiceEvent);
-        StartServiceLog startServiceLog = new StartServiceLog(_time, completeServiceEvent);
-        _state.ActivityLogs.Add(startServiceLog);
+        _state!.StartService(individual, node, arrivalTime, _time, selectedServer);
+        return true;
     }
 
     private void IndividualLeavesNode(int server, Node origin)
     {
-        if (origin.IsQueueEmpty)
+        while(!origin.IsQueueEmpty)
         {
-            origin.ServingIndividuals[server] = null;
-            return;
+            // Try to start the service of the next individual
+            // If the individual baulks, try the next individual
+            // If the individual can get served, break this loop
+            (Individual nextIndividual, int nextIndividualsArrivalTime) = origin.Queue[0];
+            origin.Queue.RemoveAt(0);
+            bool canStartService = TryStartService(nextIndividual, origin, nextIndividual.Cohort.PropertiesByNode[origin].ServiceDurationSelector, nextIndividualsArrivalTime, server);
+            if (canStartService)
+            {
+                return;
+            }
         }
 
-        Individual nextIndividual = origin.Queue[0];
-        origin.Queue.RemoveAt(0);
-        StartService(nextIndividual, origin, nextIndividual.Cohort.PropertiesByNode[origin].ServiceDurationSelector, server);
-    }
-
-    private void AddIndividualToOverflowQueue(Individual individual, Node origin, Node destination)
-    {
-        destination.OverflowQueue.Add(individual);
-        AddToOverflowQueueLog overflowLog = new AddToOverflowQueueLog(_time, individual, origin, destination);
-        _state!.ActivityLogs.Add(overflowLog);
-    }
-
-    private void BaulkIndividual(Individual individual, Node node)
-    {
-        BaulkingLog baulkingLog = new(_time, individual, node);
-        _state!.ActivityLogs.Add(baulkingLog);
-    }
-
-    private void EnqueueIndividual(Individual individual, Node node)
-    {
-        node.Queue.Add(individual);
-        EnqueueLog enqueueLog = new(_time, individual, node, node.Queue.Count);
-        _state!.ActivityLogs.Add(enqueueLog);
+        origin.ServingIndividuals[server] = null;
+        return;
     }
 }

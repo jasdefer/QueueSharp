@@ -29,7 +29,7 @@ public static class CohortFactory
             {nodes[0], new NodeProperties(arrivalDistributions, serviceDistributions, serverSelector??new FirstServerSelector()) }
         }.ToFrozenDictionary();
         Cohort[] cohorts = [
-                new Cohort("Cohort01", propertiesByNode, routing,1)
+                new Cohort("Cohort01", propertiesByNode, routing)
             ];
         return cohorts;
     }
@@ -97,9 +97,9 @@ public static class CohortFactory
             {nodes[2], new NodeProperties(DurationDistributionSelector.Empty, metalDetectorServiceWithoutBag, serverSelector??new FirstServerSelector()) },
         }.ToFrozenDictionary();
         Cohort[] cohorts = [
-                new Cohort("Without Ticket", propertiesByNodeNonTicketholders, nonTicketHolderRouting,1),
-                new Cohort("With Ticket and bags", propertiesByNodeTicketholdersWithBag, routingWithTicketAndBag,1),
-                new Cohort("With Ticket without bag", propertiesByNodeTicketholdersWithoutBag, routingWithTicketWihtoutBag,1),
+                new Cohort("Without Ticket", propertiesByNodeNonTicketholders, nonTicketHolderRouting),
+                new Cohort("With Ticket and bags", propertiesByNodeTicketholdersWithBag, routingWithTicketAndBag),
+                new Cohort("With Ticket without bag", propertiesByNodeTicketholdersWithoutBag, routingWithTicketWihtoutBag),
             ];
         return cohorts;
     }

@@ -2,7 +2,6 @@
 using QueueSharp.Factories;
 using QueueSharp.Logic;
 using QueueSharp.Model.Components;
-using System.Collections.Immutable;
 
 namespace PerformanceTests;
 
@@ -27,31 +26,31 @@ public class QueueBenchmark
         _simulationLongIntervalsAndFrequentArrivals = new(cohorts);
     }
 
-    [Benchmark]
-    public int RunSmall()
-    {
-        ImmutableArray<ActivityLog> result = _simulationSmall!.Start();
-        return result.Length;
-    }
+    //[Benchmark]
+    //public int RunSmall()
+    //{
+    //    IEnumerable<NodeVisitRecord> result = _simulationSmall!.Start();
+    //    return result.Count();
+    //}
 
-    [Benchmark]
-    public int LongIntervals()
-    {
-        ImmutableArray<ActivityLog> result = _simulationLongIntervals!.Start();
-        return result.Length;
-    }
+    //[Benchmark]
+    //public int LongIntervals()
+    //{
+    //    IEnumerable<NodeVisitRecord> result = _simulationLongIntervals!.Start();
+    //    return result.Count();
+    //}
 
     [Benchmark]
     public int FrequentArrivals()
     {
-        ImmutableArray<ActivityLog> result = _simulationFrequentArrival!.Start();
-        return result.Length;
+        IEnumerable<NodeVisitRecord> result = _simulationFrequentArrival!.Start();
+        return result.Count();
     }
 
-    [Benchmark]
-    public int LongIntervalsAndFrequentArrivals()
-    {
-        ImmutableArray<ActivityLog> result = _simulationLongIntervalsAndFrequentArrivals!.Start();
-        return result.Length;
-    }
+    //[Benchmark]
+    //public int LongIntervalsAndFrequentArrivals()
+    //{
+    //    IEnumerable<NodeVisitRecord> result = _simulationLongIntervalsAndFrequentArrivals!.Start();
+    //    return result.Count();
+    //}
 }

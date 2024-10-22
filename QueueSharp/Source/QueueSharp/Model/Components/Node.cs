@@ -1,4 +1,8 @@
-﻿namespace QueueSharp.Model.Components;
+﻿using System.Diagnostics;
+
+namespace QueueSharp.Model.Components;
+
+[DebuggerDisplay("Node '{Id}' with {ServerCount} servers")]
 public class Node
 {
     /// <summary>
@@ -24,9 +28,9 @@ public class Node
     public int? QueueCapacity { get; set; }
 
     /// <summary>
-    /// The list of individuals waiting in the queue to be served by one of the servers.
+    /// The list of individuals and their arrival time at this node who are waiting in the queue to be served by one of the servers.
     /// </summary>
-    public List<Individual> Queue { get; } = [];
+    public List<(Individual, int)> Queue { get; } = [];
 
     /// <summary>
     /// Individuals targeting this node after leaving other nodes are prevented from enqueueing if this node's queue is full.
