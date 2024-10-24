@@ -6,20 +6,30 @@ namespace QueueSharp.Model.Components;
 
 public abstract record NodeVisitRecord(Individual Individual,
     Node Node,
-    int ArrivalTime);
+    int ArrivalTime,
+    int QueueSizeAtArrival);
 
 [DebuggerDisplay("Baulking from {Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}")]
 public sealed record BaulkingAtArrival(Individual Individual,
     Node Node,
     int ArrivalTime,
-    int QueueSizeAtArrival) : NodeVisitRecord(Individual, Node, ArrivalTime);
+    int QueueSizeAtArrival) : NodeVisitRecord(Individual, Node, ArrivalTime, QueueSizeAtArrival);
+
+public abstract record NodeServiceStartRecord(Individual Individual,
+    Node Node,
+    int ArrivalTime,
+    int ServiceStartTime,
+    int QueueSizeAtArrival) : NodeVisitRecord(Individual, Node, ArrivalTime, QueueSizeAtArrival)
+{
+    public int WaitingDuration => ServiceStartTime - ArrivalTime;
+};
 
 [DebuggerDisplay("Baulking service from {Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}")]
 public sealed record BaulkingAtStartService(Individual Individual,
     Node Node,
     int ArrivalTime,
-    int ServiceStartTime,
-    int QueueSizeAtArrival) : NodeVisitRecord(Individual, Node, ArrivalTime);
+    int QueueSizeAtArrival,
+    int ServiceStartTime) : NodeServiceStartRecord(Individual, Node, ArrivalTime, QueueSizeAtArrival, ServiceStartTime);
 
 [DebuggerDisplay("{Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime} and exited at {ExitTime}")]
 public sealed record NodeServiceRecord(Individual Individual,
@@ -31,9 +41,8 @@ public sealed record NodeServiceRecord(Individual Individual,
     Node? Destination,
     int QueueSizeAtArrival,
     int QueueSizeAtExit,
-    int Server) : NodeVisitRecord(Individual, Node, ArrivalTime)
+    int Server) : NodeServiceStartRecord(Individual, Node, ArrivalTime, QueueSizeAtArrival, ServiceStartTime)
 {
-    public int WaitingDuration => ServiceStartTime - ArrivalTime;
     public int ServiceDuration => ServiceEndTime - ServiceStartTime;
     public int BlockDuration => ExitTime - ServiceEndTime;
 }
