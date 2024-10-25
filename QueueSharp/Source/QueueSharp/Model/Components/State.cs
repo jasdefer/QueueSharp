@@ -6,7 +6,7 @@ public class State
 
     private readonly Dictionary<Individual, Dictionary<Node, Dictionary<int, NodeVisit>>> _nodeVisits = [];
     public required EventList EventList { get; init; }
-    public ImmutableArray<Node> Node { get; init; }
+    public ImmutableArray<Node> Nodes { get; init; }
     public IEnumerable<NodeVisitRecord> NodeVisitRecords => _nodeVisits
         .SelectMany(x => x.Value
             .SelectMany(y => y.Value
@@ -93,6 +93,25 @@ public class State
             nodeVisit.QueueSizeAtArrival!.Value,
             nodeVisit.QueueSizeAtExit!.Value,
             nodeVisit.Server!.Value);
+    }
+
+    internal void CancelSimulation()
+    {
+        foreach (Node node in Nodes)
+        {
+            foreach ((Individual individual, int arrivalTime) in node.Queue)
+            {
+                _nodeVisits[individual][node].Remove(arrivalTime);
+            }
+            foreach (Individual? individual in node.ServingIndividuals)
+            {
+                if (individual is null)
+                {
+                    continue;
+                }
+                _nodeVisits[individual][node].Remove(_nodeVisits[individual][node].Max(x => x.Key));
+            }
+        }
     }
 
     private class NodeVisit

@@ -43,7 +43,7 @@ public class Simulation
         _state = new State()
         {
             EventList = new EventList(),
-            Node = nodes
+            Nodes = nodes
         };
 
         // Create the initial arrival event for each cohort and node
@@ -63,6 +63,7 @@ public class Simulation
             IEvent currentEvent = _state.EventList.Dequeue();
             if (_simulationSettings.MaxTime < currentEvent.Timestamp)
             {
+                _state.CancelSimulation();
                 return;
             }
             ProcessEvent(currentEvent);
@@ -77,8 +78,9 @@ public class Simulation
     private void ProcessEvent(IEvent @event)
     {
         _time = @event.Timestamp;
-        if(_time > int.MaxValue - 1000)
+        if (_time > int.MaxValue - 1000)
         {
+            // ToDo: Find better bounds for 1000
             throw new InvalidInputException("Simulation time is too long.");
         }
         switch (@event)
@@ -238,7 +240,7 @@ public class Simulation
 
     private void IndividualLeavesNode(int server, Node origin)
     {
-        while(!origin.IsQueueEmpty)
+        while (!origin.IsQueueEmpty)
         {
             // Try to start the service of the next individual
             // If the individual baulks, try the next individual

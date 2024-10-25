@@ -19,7 +19,7 @@ public record Cohort(string Id,
     private int _id = 0;
     internal Individual CreateIndividual()
     {
-        if(_id > int.MaxValue - 10)
+        if (_id > int.MaxValue - 10)
         {
             ;
         }

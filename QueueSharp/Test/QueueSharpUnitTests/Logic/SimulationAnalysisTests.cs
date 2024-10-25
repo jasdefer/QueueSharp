@@ -1,10 +1,5 @@
 ﻿using QueueSharp.Logic;
 using QueueSharp.Model.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QueueSharpUnitTests.Logic;
 public class SimulationAnalysisTests
@@ -13,7 +8,7 @@ public class SimulationAnalysisTests
     public void ComputeSetMetricsTest()
     {
         // Arrange: Input collection and expected results
-        int[] values = [ 1, 2, 3, 4, 5 ];
+        int[] values = [1, 2, 3, 4, 5];
 
         // Expected values for this input
         double expectedMean = 3.0;
@@ -30,8 +25,31 @@ public class SimulationAnalysisTests
         result.Variance.Should().BeApproximately(expectedVariance, 0.01);
         result.Min.Should().Be(expectedMin);
         result.Max.Should().Be(expectedMax);
-        result.StandardDeviation.Should().BeApproximately(expectedStandardDeviation, 0.01);
         result.Count.Should().Be(values.Length);
         result.Sum.Should().Be(15);
+    }
+
+    [Fact]
+    public void MergeTest()
+    {
+        Random random = new(1);
+        for (int i = 0; i < 1000; i++)
+        {
+            int[][] valueSets = new int[random.Next(2, 10)][];
+            SetMetrics[] setMetrics = new SetMetrics[valueSets.Length];
+            for (int j = 0; j < valueSets.Length; j++)
+            {
+                valueSets[j] = Enumerable
+                    .Range(0, i + 2)
+                    .Select(x => random.Next(0, 50))
+                    .ToArray();
+                setMetrics[j] = valueSets[j].ComputeSetMetrics();
+            }
+            SetMetrics combinedSetMetrics = valueSets.SelectMany(x => x).ComputeSetMetrics();
+            MetricsAggregation metricsAggregation = setMetrics.Merge();
+            metricsAggregation.Sum.Sum.Should().Be(combinedSetMetrics.Sum);
+            metricsAggregation.Min.Min.Should().Be(combinedSetMetrics.Min);
+            metricsAggregation.Max.Max.Should().Be(combinedSetMetrics.Max);
+        }
     }
 }

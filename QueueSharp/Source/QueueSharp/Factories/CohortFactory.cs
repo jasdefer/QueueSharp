@@ -10,16 +10,20 @@ public static class CohortFactory
 {
     public static Cohort[] GetSingleNode(string nodeId,
         int serverCount,
+        IDurationDistribution arrivalDistribution,
+        IDurationDistribution serviceDistribution,
+        int arrivalEnd,
+        int serviceEnd,
         IServerSelector? serverSelector = null)
     {
         Node[] nodes = [
             new Node(nodeId, serverCount: serverCount),
             ];
         IEnumerable<(Interval, IDurationDistribution)> arrivalDistribtionList = [
-            IntervalForConstantDuration(start: 0, end: 1000, duration: 10)
+            (new Interval(0, arrivalEnd), arrivalDistribution)
             ];
         IEnumerable<(Interval, IDurationDistribution)> serviceDistributionList = [
-            IntervalForConstantDuration(start: 0, end: 2000, duration: 30)
+            (new Interval(0, serviceEnd), serviceDistribution)
             ];
         DurationDistributionSelector arrivalDistributions = new(arrivalDistribtionList, 1);
         DurationDistributionSelector serviceDistributions = new(serviceDistributionList, 1);
