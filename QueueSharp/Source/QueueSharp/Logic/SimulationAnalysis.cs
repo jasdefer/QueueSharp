@@ -11,16 +11,16 @@ public static class SimulationAnalysis
     /// </summary>
     /// <param name="values">The collection of integer values to compute metrics for.</param>
     /// <returns>A <see cref="SetMetrics"/> instance containing the calculated statistics.</returns>
-    public static SetMetrics ComputeSetMetrics<TNumber>(this IEnumerable<TNumber> values) where TNumber : INumber<TNumber>
+    public static SetMetrics ComputeSetMetrics(this IEnumerable<int> values)
     {
-        TNumber mean = TNumber.Zero;
-        TNumber m2 = TNumber.Zero;  // For computing variance
-        TNumber? max = default;
-        TNumber? min = default;
-        TNumber sum = TNumber.Zero;
-        TNumber count = TNumber.Zero;
+        double mean = 0;
+        double m2 = 0;  // For computing variance
+        int? max = null;
+        int? min = null;
+        int sum = 0;
+        int count = 0;
 
-        foreach (TNumber value in values)
+        foreach (int value in values)
         {
             count++;
 
@@ -35,27 +35,82 @@ public static class SimulationAnalysis
             }
 
             // Welford's method to calculate mean and variance in one pass
-            TNumber delta = value - mean;
+            double delta = value - mean;
             mean += delta / count;
             m2 += delta * (value - mean);
 
             sum += value;
         }
 
-        if (count == TNumber.Zero)
+        if (count == 0)
         {
             return new SetMetrics(0, 0, 0, 0, 0, 0);
         }
 
-        double variance = Convert.ToDouble(m2) / Convert.ToDouble(count);
+        double variance =  m2 / count;
 
         return new SetMetrics(
-            Mean: Convert.ToDouble(mean),
+            Mean: mean,
             Variance: variance,
-            Min: Convert.ToDouble(min),
-            Max: Convert.ToDouble(max),
-            Count: Convert.ToDouble(count),
-            Sum: Convert.ToDouble(sum));
+            Min: min.GetValueOrDefault(),
+            Max: max.GetValueOrDefault(),
+            Count: count,
+            Sum: sum
+        );
+    }
+
+    /// <summary>
+    /// Calculates a <see cref="SetMetrics"/> summary for the given collection of values,
+    /// computing metrics such as mean, variance, min, max, standard deviation, count, and sum.
+    /// </summary>
+    /// <param name="values">The collection of integer values to compute metrics for.</param>
+    /// <returns>A <see cref="SetMetrics"/> instance containing the calculated statistics.</returns>
+    public static SetMetrics ComputeSetMetrics(this IEnumerable<double> values)
+    {
+        double mean = 0;
+        double m2 = 0;  // For computing variance
+        double? max = null;
+        double? min = null;
+        double sum = 0;
+        int count = 0;
+
+        foreach (double value in values)
+        {
+            count++;
+
+            // Update min and max
+            if (min is null || value < min)
+            {
+                min = value;
+            }
+            if (max is null || value > max)
+            {
+                max = value;
+            }
+
+            // Welford's method to calculate mean and variance in one pass
+            double delta = value - mean;
+            mean += delta / count;
+            m2 += delta * (value - mean);
+
+            sum += value;
+        }
+
+        if (count == 0)
+        {
+            return new SetMetrics(0, 0, 0, 0, 0, 0);
+        }
+
+        double variance = m2 / count;
+
+        return new SetMetrics(
+            Mean: mean,
+            Variance: variance,
+            Min: min.GetValueOrDefault(),
+            Max: max.GetValueOrDefault(),
+            Count: count,
+            Sum: sum
+        );
     }
 
     /// <summary>

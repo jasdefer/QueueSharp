@@ -5,7 +5,7 @@ namespace QueueSharpUnitTests.Logic;
 public class SimulationAnalysisTests
 {
     [Fact]
-    public void ComputeSetMetricsTest()
+    public void ComputeSetMetricsIntTest()
     {
         // Arrange: Input collection and expected results
         int[] values = [1, 2, 3, 4, 5];
@@ -15,7 +15,30 @@ public class SimulationAnalysisTests
         double expectedVariance = 2.0;
         double expectedMin = 1;
         double expectedMax = 5;
-        double expectedStandardDeviation = Math.Sqrt(expectedVariance);
+
+        // Act: Call the method under test
+        SetMetrics result = SimulationAnalysis.ComputeSetMetrics(values);
+
+        // Assert: Check if result matches the expected values
+        result.Mean.Should().BeApproximately(expectedMean, 0.01);
+        result.Variance.Should().BeApproximately(expectedVariance, 0.01);
+        result.Min.Should().Be(expectedMin);
+        result.Max.Should().Be(expectedMax);
+        result.Count.Should().Be(values.Length);
+        result.Sum.Should().Be(15);
+    }
+
+    [Fact]
+    public void ComputeSetMetricsDoubleTest()
+    {
+        // Arrange: Input collection and expected results
+        double[] values = [1, 2, 3, 4, 5];
+
+        // Expected values for this input
+        double expectedMean = 3.0;
+        double expectedVariance = 2.0;
+        double expectedMin = 1;
+        double expectedMax = 5;
 
         // Act: Call the method under test
         SetMetrics result = SimulationAnalysis.ComputeSetMetrics(values);
