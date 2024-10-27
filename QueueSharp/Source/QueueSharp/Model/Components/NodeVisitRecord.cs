@@ -31,7 +31,7 @@ public sealed record BaulkingAtStartService(Individual Individual,
     int QueueSizeAtArrival,
     int ServiceStartTime) : NodeServiceStartRecord(Individual, Node, ArrivalTime, ServiceStartTime, QueueSizeAtArrival);
 
-[DebuggerDisplay("{Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime} and exited at {ExitTime}")]
+[DebuggerDisplay("{Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}, started service at {ServiceStartTime} and exited at {ExitTime}")]
 public sealed record NodeServiceRecord(Individual Individual,
     Node Node,
     int ArrivalTime,
