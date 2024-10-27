@@ -1,6 +1,5 @@
 ﻿using QueueSharp.Model.Components;
 using System.Collections.Frozen;
-using System.Numerics;
 
 namespace QueueSharp.Logic;
 public static class SimulationAnalysis
@@ -47,7 +46,7 @@ public static class SimulationAnalysis
             return new SetMetrics(0, 0, 0, 0, 0, 0);
         }
 
-        double variance =  m2 / count;
+        double variance = m2 / count;
 
         return new SetMetrics(
             Mean: mean,

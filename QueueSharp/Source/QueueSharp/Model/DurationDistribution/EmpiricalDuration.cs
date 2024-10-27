@@ -23,7 +23,7 @@ internal record EmpiricalDuration : IDurationDistribution
         {
             return _empiricalDurations[_random.Next(0, _empiricalDurations.Length)];
         }
-        if(_index >= _empiricalDurations.Length - 1)
+        if (_index >= _empiricalDurations.Length - 1)
         {
             _index = 0;
         }
