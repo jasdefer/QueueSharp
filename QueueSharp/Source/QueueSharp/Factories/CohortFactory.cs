@@ -113,13 +113,13 @@ public static class CohortFactory
         return (new Interval(start, end), new ConstantDuration(duration));
     }
 
-    private static IEnumerable<Arc> GetArcs(Node[] nodes, params int[] nodeIds)
+    private static IEnumerable<WeightedArc> GetArcs(Node[] nodes, params int[] nodeIds)
     {
         for (int i = 0; i < nodeIds.Length - 1; i++)
         {
             int originId = nodeIds[i];
             int destinationId = nodeIds[i + 1];
-            yield return new Arc(nodes[originId], nodes[destinationId]);
+            yield return new WeightedArc(nodes[originId], nodes[destinationId], 1);
         }
     }
 }

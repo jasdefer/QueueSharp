@@ -117,7 +117,7 @@ public class Simulation
     private void CreateArrivalEvent(Cohort cohort, Node destination, bool isInitialArrival = false)
     {
         NodeProperties nodeProperties = cohort.PropertiesByNode[destination];
-        bool hasArrival = nodeProperties.DurationDistributionSelector.TryGetArrivalTime(time:
+        bool hasArrival = nodeProperties.ArrivalDistributionSelector.TryGetArrivalTime(time:
                     _time,
                     out int? arrival,
                     isInitialArrival: isInitialArrival);

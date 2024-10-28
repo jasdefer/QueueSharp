@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace QueueSharp.Model.Components;
 
-public record NodeProperties(DurationDistributionSelector DurationDistributionSelector,
+public record NodeProperties(DurationDistributionSelector ArrivalDistributionSelector,
     DurationDistributionSelector ServiceDurationSelector,
     IServerSelector ServerSelector,
     int ArrivalBatchSize = 1);

@@ -3,6 +3,9 @@ using QueueSharp.Logic;
 using QueueSharp.Logic.Validation;
 using QueueSharp.Model.Components;
 using QueueSharp.Model.DurationDistribution;
+using QueueSharp.Model.Routing;
+using QueueSharp.Model.ServerSelector;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 namespace QueueSharpUnitTests.Logic;
@@ -80,5 +83,60 @@ public class SimulationTests
         SimulationNodeReport nodeReport = report.NodeReportsByNodeId.Single().Value;
         nodeReport.ServiceDurationMetrics.Mean.Should().BeApproximately(1000, 50);
         nodeReport.WaitingTimeMetrics.Mean.Should().BeApproximately(436, 30);
+    }
+
+    [Fact]
+    public void CiwComparison_RandomDestination()
+    {
+        int simulationRunTime = 20000;
+        Node coldFood = new Node("Cold Food", 1);
+        Node hotFood = new Node("Hot Food", 2);
+        Node till = new Node("Till", 2);
+
+        WeightedArc coldToHot = new WeightedArc(coldFood, hotFood, 0.3);
+        WeightedArc coldToTill = new WeightedArc(coldFood, till, 0.7);
+        WeightedArc hotToTill = new WeightedArc(hotFood, till, 1);
+
+        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], QueueIsFullBehavior.Baulk, 1);
+
+        IDurationDistribution coldArrival = new ExponentialDistribution(rate: 0.003, randomSeed: 1);
+        IDurationDistribution hotArrival = new ExponentialDistribution(rate: 0.002, randomSeed: 2);
+
+        IDurationDistribution coldService = new ExponentialDistribution(rate: 0.01, randomSeed: 3);
+        IDurationDistribution hotService = new ExponentialDistribution(rate: 0.004, randomSeed: 4);
+        IDurationDistribution tillService = new ExponentialDistribution(rate: 0.005, randomSeed: 5);
+
+        IServerSelector serverSelector = new FirstServerSelector();
+        Dictionary<Node, NodeProperties> propertiesByNode = new Dictionary<Node, NodeProperties>
+        {
+            { 
+                coldFood, new NodeProperties(coldArrival.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 6),
+                    coldService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 7),
+                    serverSelector)
+            },
+            {
+                hotFood, new NodeProperties(hotArrival.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 8),
+                    hotService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 9),
+                    serverSelector)
+            },
+            {
+                till, new NodeProperties(DurationDistributionSelector.None,
+                    tillService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 10),
+                    serverSelector)
+            }
+        };
+
+        Cohort[] cohorts = [
+            new Cohort("Cohort01", propertiesByNode.ToFrozenDictionary(), routing)
+            ];
+        SimulationSettings simulationSettings = new(simulationRunTime);
+        Simulation simulation = new(cohorts, simulationSettings);
+        ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
+        SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
+        NodeVisitRecordsValidation.Validate(nodeVisitRecords);
+        report.NodeReportsByNodeId.Should().HaveCount(3);
+        SimulationNodeReport coldReport = report.NodeReportsByNodeId[coldFood.Id];
+        SimulationNodeReport hotReport = report.NodeReportsByNodeId[hotFood.Id];
+        SimulationNodeReport tillReport = report.NodeReportsByNodeId[till.Id];
     }
 }
