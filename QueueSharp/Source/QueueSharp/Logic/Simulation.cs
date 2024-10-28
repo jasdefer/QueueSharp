@@ -257,4 +257,18 @@ public class Simulation
         origin.ServingIndividuals[server] = null;
         return;
     }
+
+    internal void ClearState()
+    {
+        if (_state is null)
+        {
+            return;
+        }
+        foreach (Node node in _state.Nodes)
+        {
+            node.Queue.Clear();
+            node.OverflowQueue.Clear();
+            node.SetServerCount(node.ServerCount);
+        }
+    }
 }

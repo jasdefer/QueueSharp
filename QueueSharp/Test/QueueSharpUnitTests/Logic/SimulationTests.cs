@@ -109,7 +109,7 @@ public class SimulationTests
         IServerSelector serverSelector = new FirstServerSelector();
         Dictionary<Node, NodeProperties> propertiesByNode = new Dictionary<Node, NodeProperties>
         {
-            { 
+            {
                 coldFood, new NodeProperties(coldArrival.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 6),
                     coldService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 7),
                     serverSelector)
@@ -130,13 +130,21 @@ public class SimulationTests
             new Cohort("Cohort01", propertiesByNode.ToFrozenDictionary(), routing)
             ];
         SimulationSettings simulationSettings = new(simulationRunTime);
-        Simulation simulation = new(cohorts, simulationSettings);
-        ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
-        SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
-        NodeVisitRecordsValidation.Validate(nodeVisitRecords);
-        report.NodeReportsByNodeId.Should().HaveCount(3);
-        SimulationNodeReport coldReport = report.NodeReportsByNodeId[coldFood.Id];
-        SimulationNodeReport hotReport = report.NodeReportsByNodeId[hotFood.Id];
-        SimulationNodeReport tillReport = report.NodeReportsByNodeId[till.Id];
+        SimulationReport[] reports = new SimulationReport[1000];
+        for (int i = 0; i < reports.Length; i++)
+        {
+            Simulation simulation = new(cohorts, simulationSettings);
+            ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
+            NodeVisitRecordsValidation.Validate(nodeVisitRecords);
+            reports[i] = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
+            reports[i].NodeReportsByNodeId.Should().HaveCount(3);
+            simulation.ClearState();
+        }
+
+        FrozenDictionary<string, SimulationAggregationNodeReport> mergedReport = SimulationAnalysis.Merge(reports);
+
+        mergedReport[coldFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(18.73, 2);
+        mergedReport[hotFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(18.73, 2);
+        mergedReport[till.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(18.73, 2);
     }
 }

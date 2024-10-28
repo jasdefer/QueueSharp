@@ -11,6 +11,7 @@ public class State
         .SelectMany(x => x.Value
             .SelectMany(y => y.Value
                 .Select(z => Map(x.Key, y.Key, z.Key, z.Value))));
+
     internal void AddArrival(Individual individual, Node node, int time)
     {
         Dictionary<Node, Dictionary<int, NodeVisit>>? record;
