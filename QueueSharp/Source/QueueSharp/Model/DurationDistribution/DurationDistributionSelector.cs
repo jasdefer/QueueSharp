@@ -17,7 +17,7 @@ public record DurationDistributionSelector : IntervalDictionary<IDurationDistrib
             : new Random(randomSeed.Value);
     }
 
-    internal bool TryGetArrivalTime(int time, out int? arrival, bool isInitialArrival = false)
+    internal bool TryGetNextTime(int time, out int? arrival, bool isInitialArrival = false)
     {
         arrival = 0;
         double fraction = isInitialArrival

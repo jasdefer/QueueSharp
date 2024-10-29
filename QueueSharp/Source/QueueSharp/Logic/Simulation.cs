@@ -117,7 +117,7 @@ public class Simulation
     private void CreateArrivalEvent(Cohort cohort, Node destination, bool isInitialArrival = false)
     {
         NodeProperties nodeProperties = cohort.PropertiesByNode[destination];
-        bool hasArrival = nodeProperties.ArrivalDistributionSelector.TryGetArrivalTime(time:
+        bool hasArrival = nodeProperties.ArrivalDistributionSelector.TryGetNextTime(time:
                     _time,
                     out int? arrival,
                     isInitialArrival: isInitialArrival);
@@ -222,7 +222,7 @@ public class Simulation
     private bool TryStartService(Individual individual, Node node, DurationDistributionSelector serviceDurationSelector, int arrivalTime, int selectedServer)
     {
         node.ServingIndividuals[selectedServer] = individual;
-        bool canCompleteService = serviceDurationSelector.TryGetArrivalTime(_time, out int? serviceCompleted, false);
+        bool canCompleteService = serviceDurationSelector.TryGetNextTime(_time, out int? serviceCompleted, false);
         if (!canCompleteService)
         {
             _state!.Baulk(individual, node, arrivalTime, BaulkingReson.CannotCompleteService, _time);

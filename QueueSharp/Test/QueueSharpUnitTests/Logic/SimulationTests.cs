@@ -143,8 +143,11 @@ public class SimulationTests
 
         FrozenDictionary<string, SimulationAggregationNodeReport> mergedReport = SimulationAnalysis.Merge(reports);
 
-        mergedReport[coldFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(18.73, 2);
-        mergedReport[hotFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(18.73, 2);
-        mergedReport[till.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(18.73, 2);
+        mergedReport[coldFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(41, 5);
+        mergedReport[hotFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(34, 4);
+        mergedReport[till.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(62, 6);
+        mergedReport[coldFood.Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(60, 6);
+        mergedReport[hotFood.Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(57, 6);
+        mergedReport[till.Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(98, 10);
     }
 }

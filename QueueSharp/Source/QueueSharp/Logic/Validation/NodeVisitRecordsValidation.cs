@@ -13,7 +13,10 @@ internal class NodeVisitRecordsValidation
         {
             int? previousExitTime = null;
             NodeServiceRecord? previous = null;
-            foreach (NodeServiceRecord nodeServiceRecord in group.OrderBy(x => x.ServiceStartTime))
+            IOrderedEnumerable<NodeServiceRecord> sortedServiceRecords = group
+                .OrderBy(x => x.ServiceStartTime)
+                .ThenBy(x => x.ExitTime);
+            foreach (NodeServiceRecord nodeServiceRecord in sortedServiceRecords)
             {
                 if (previousExitTime > nodeServiceRecord.ServiceStartTime)
                 {
