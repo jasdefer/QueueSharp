@@ -1,7 +1,7 @@
 ﻿using QueueSharp.Model.Components;
 
 namespace QueueSharp.Model.ServerSelector;
-internal class FirstServerSelector : IServerSelector
+public class FirstServerSelector : IServerSelector
 {
     public bool CanSelectServer(Node node, out int? selectedServer)
     {

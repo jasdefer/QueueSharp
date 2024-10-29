@@ -258,7 +258,7 @@ public class Simulation
         return;
     }
 
-    internal void ClearState()
+    public void ClearState()
     {
         if (_state is null)
         {

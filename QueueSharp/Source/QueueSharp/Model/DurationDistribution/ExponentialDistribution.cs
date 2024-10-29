@@ -1,7 +1,7 @@
 ﻿using MathNet.Numerics.Distributions;
 
 namespace QueueSharp.Model.DurationDistribution;
-internal class ExponentialDistribution : IDurationDistribution
+public class ExponentialDistribution : IDurationDistribution
 {
     private readonly Random _random;
     private readonly double _rate;

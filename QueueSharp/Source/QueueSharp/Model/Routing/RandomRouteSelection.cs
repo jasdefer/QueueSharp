@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace QueueSharp.Model.Routing;
 
-internal class RandomRouteSelection : IRouting
+public class RandomRouteSelection : IRouting
 {
     private readonly FrozenDictionary<Node, ImmutableArray<WeightedArc>> _arcsByOrigin;
     private readonly FrozenDictionary<Node, double> _totalWeight;
