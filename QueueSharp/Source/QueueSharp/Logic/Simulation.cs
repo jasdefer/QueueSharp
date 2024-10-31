@@ -147,7 +147,7 @@ public class Simulation
         {
             return;
         }
-        Individual overflowIndividual = origin.OverflowQueue[0];
+        (Individual overflowIndividual, int overflowIndividualArrival) = origin.OverflowQueue[0];
         origin.OverflowQueue.RemoveAt(0);
         for (int i = 0; i < origin.ServingIndividuals.Length; i++)
         {
@@ -158,6 +158,7 @@ public class Simulation
                 break;
             }
         }
+        _state.Exit(overflowIndividual, origin, overflowIndividualArrival, _time);
         IndividualArrives(overflowIndividual, origin);
     }
 

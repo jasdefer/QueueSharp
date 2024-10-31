@@ -145,6 +145,10 @@ public static class SimulationAnalysis
                     .OfType<NodeServiceRecord>()
                     .Select(x => x.ServiceDuration)
                     .ComputeSetMetrics();
+                SetMetrics blockedDurationMetrics = nodeServiceRecords
+                    .OfType<NodeServiceRecord>()
+                    .Select(x => x.BlockDuration)
+                    .ComputeSetMetrics();
                 int baulkedAtArrival = nodeServiceRecords
                     .OfType<BaulkingAtArrival>()
                     .Count();
@@ -153,6 +157,7 @@ public static class SimulationAnalysis
                     .Count();
                 return new SimulationNodeReport(waitingDurationMetrics,
                     serviceDurationMetrics,
+                    blockedDurationMetrics,
                     baulkedAtArrival,
                     baulkedAtService);
             });
@@ -173,6 +178,7 @@ public static class SimulationAnalysis
                 .ToArray();
             SimulationAggregationNodeReport mergedNodeReport = new(WaitingTimeMetrics: simulationNodeReports.Select(x => x.WaitingTimeMetrics).Merge(),
                 ServiceDurationMetrics: simulationNodeReports.Select(x => x.ServiceDurationMetrics).Merge(),
+                BlockDurationMetrics: simulationNodeReports.Select(x => x.BlockDurationMetrics).Merge(),
                 BaulkdedIndividualsAtArrival: simulationNodeReports.Select(x => x.BaulkdedIndividualsAtArrival).ComputeSetMetrics(),
                 BaulkdedIndividualsAtServiceStart: simulationNodeReports.Select(x => x.BaulkdedIndividualsAtServiceStart).ComputeSetMetrics());
             mergedNodeReports.Add(nodeId, mergedNodeReport);

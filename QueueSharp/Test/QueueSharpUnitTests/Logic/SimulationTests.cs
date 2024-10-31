@@ -97,7 +97,7 @@ public class SimulationTests
         WeightedArc coldToTill = new WeightedArc(coldFood, till, 0.7);
         WeightedArc hotToTill = new WeightedArc(hotFood, till, 1);
 
-        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], QueueIsFullBehavior.Baulk, 1);
+        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], null, 1);
 
         IDurationDistribution coldArrival = new ExponentialDistribution(rate: 0.003, randomSeed: 1);
         IDurationDistribution hotArrival = new ExponentialDistribution(rate: 0.002, randomSeed: 2);
@@ -149,5 +149,90 @@ public class SimulationTests
         mergedReport[coldFood.Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(60, 6);
         mergedReport[hotFood.Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(57, 6);
         mergedReport[till.Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(98, 10);
+    }
+
+    [Fact]
+    public void CiwComparison_RestrictedNetworks()
+    {
+        Node[] nodes = [
+            new Node("Node01", serverCount: 1, queueCapacity: 1),
+            new Node("Node02", serverCount: 1, queueCapacity: 1),
+            new Node("Node03", serverCount: 1, queueCapacity: 1),
+            ];
+
+        WeightedArc[] arcs = [
+            new WeightedArc(nodes[0], nodes[1]),
+            new WeightedArc(nodes[1], nodes[2]),
+            ];
+        Dictionary<Node, QueueIsFullBehavior> queueFullBehaviorByNode = new ()
+        {
+            { nodes[0], QueueIsFullBehavior.Baulk},
+            { nodes[1], QueueIsFullBehavior.WaitAndBlockCurrentServer},
+            { nodes[2], QueueIsFullBehavior.WaitAndBlockCurrentServer},
+        };
+        IRouting routing = new RandomRouteSelection(arcs, queueFullBehaviorByNode.ToFrozenDictionary(), 1);
+        IDurationDistribution arrivalDistribution = new ConstantDuration(330);
+        IDurationDistribution[] serviceDistributions = 
+            [
+                new UniformDuration(300, 500, 2),
+                new UniformDuration(300, 700, 3),
+                new UniformDuration(300, 900, 4),
+            ];
+
+        IServerSelector serverSelector = new FirstServerSelector();
+
+        int simulationDuration = 40000;
+        Dictionary<Node, NodeProperties> propertiesByNode = new()
+        {
+            { 
+                nodes[0],
+                new NodeProperties(ArrivalDistributionSelector: arrivalDistribution.ToSelector(0, 120000, 5),
+                    ServiceDurationSelector: serviceDistributions[0].ToSelector(0, simulationDuration * 2, 5),
+                    ServerSelector: serverSelector) 
+            },
+            {
+                nodes[1],
+                new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.Empty,
+                    ServiceDurationSelector: serviceDistributions[1].ToSelector(0, simulationDuration * 2, 6),
+                    ServerSelector: serverSelector)
+            },
+            {
+                nodes[2],
+                new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.Empty,
+                    ServiceDurationSelector: serviceDistributions[2].ToSelector(0, simulationDuration * 2, 7),
+                    ServerSelector: serverSelector)
+            },
+        };
+        Cohort cohort = new Cohort("Stools", propertiesByNode.ToFrozenDictionary(), routing);
+        SimulationSettings simulationSettings = new SimulationSettings(MaxTime: simulationDuration);
+
+        SimulationReport[] reports = new SimulationReport[1000];
+        for (int i = 0; i < reports.Length; i++)
+        {
+            Simulation simulation = new([cohort], simulationSettings);
+            ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
+            NodeVisitRecordsValidation.Validate(nodeVisitRecords);
+            reports[i] = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
+            reports[i].NodeReportsByNodeId.Should().HaveCount(3);
+            simulation.ClearState();
+        }
+
+        FrozenDictionary<string, SimulationAggregationNodeReport> mergedReport = SimulationAnalysis.Merge(reports);
+
+        mergedReport[nodes[0].Id].BaulkdedIndividualsAtArrival.Mean.Should().BeApproximately(51, 5);
+        mergedReport[nodes[1].Id].BaulkdedIndividualsAtArrival.Mean.Should().Be(0);
+        mergedReport[nodes[2].Id].BaulkdedIndividualsAtArrival.Mean.Should().Be(0);
+
+        mergedReport[nodes[0].Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(407, 20);
+        mergedReport[nodes[1].Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(562, 50);
+        mergedReport[nodes[2].Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(476, 30);
+
+        mergedReport[nodes[0].Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(119, 10);
+        mergedReport[nodes[1].Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(65, 6);
+        mergedReport[nodes[2].Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(64, 6);
+
+        mergedReport[nodes[0].Id].BlockDurationMetrics.Mean.Mean.Should().BeApproximately(183, 10);
+        mergedReport[nodes[1].Id].BlockDurationMetrics.Mean.Mean.Should().BeApproximately(95, 8);
+        mergedReport[nodes[2].Id].BlockDurationMetrics.Mean.Mean.Should().Be(0);
     }
 }

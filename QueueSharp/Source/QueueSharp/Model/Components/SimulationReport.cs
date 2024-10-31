@@ -1,7 +1,9 @@
 ﻿using System.Collections.Frozen;
+using System.Diagnostics;
 
 namespace QueueSharp.Model.Components;
 
+[DebuggerDisplay("{Mean} Count: {Count} [{Min} {Max}] var: {Variance}")]
 public record SetMetrics(
     double Mean,
     double Variance,
@@ -28,6 +30,7 @@ public record SimulationReport(FrozenDictionary<string, SimulationNodeReport> No
 
 public record SimulationNodeReport(SetMetrics WaitingTimeMetrics,
     SetMetrics ServiceDurationMetrics,
+    SetMetrics BlockDurationMetrics,
     int BaulkdedIndividualsAtArrival,
     int BaulkdedIndividualsAtServiceStart)
 {
@@ -38,6 +41,7 @@ public record SimulationNodeReport(SetMetrics WaitingTimeMetrics,
 
 public record SimulationAggregationNodeReport(MetricsAggregation WaitingTimeMetrics,
     MetricsAggregation ServiceDurationMetrics,
+    MetricsAggregation BlockDurationMetrics,
     SetMetrics BaulkdedIndividualsAtArrival,
     SetMetrics BaulkdedIndividualsAtServiceStart)
 {

@@ -27,7 +27,7 @@ public static class CohortFactory
             ];
         DurationDistributionSelector arrivalDistributions = new(arrivalDistribtionList, 1);
         DurationDistributionSelector serviceDistributions = new(serviceDistributionList, 1);
-        IRouting routing = new RandomRouteSelection(arcs: [], QueueIsFullBehavior.Baulk, 1);
+        IRouting routing = new RandomRouteSelection(arcs: [], null, 1);
         FrozenDictionary<Node, NodeProperties> propertiesByNode = new Dictionary<Node, NodeProperties>()
         {
             {nodes[0], new NodeProperties(arrivalDistributions, serviceDistributions, serverSelector??new FirstServerSelector()) }
@@ -79,9 +79,9 @@ public static class CohortFactory
             IntervalForConstantDuration(start: 0, times[^1]*3, duration: 15)
             ], 1);
 
-        IRouting nonTicketHolderRouting = new RandomRouteSelection(arcs: [], QueueIsFullBehavior.Baulk, 1);
-        IRouting routingWithTicketAndBag = new RandomRouteSelection(arcs: GetArcs(nodes, 0, 1, 2), QueueIsFullBehavior.WaitAndBlockCurrentServer, 1);
-        IRouting routingWithTicketWihtoutBag = new RandomRouteSelection(arcs: GetArcs(nodes, 0, 2), QueueIsFullBehavior.WaitAndBlockCurrentServer, 1);
+        IRouting nonTicketHolderRouting = new RandomRouteSelection(arcs: [], null, 1);
+        IRouting routingWithTicketAndBag = new RandomRouteSelection(arcs: GetArcs(nodes, 0, 1, 2), null, 1);
+        IRouting routingWithTicketWihtoutBag = new RandomRouteSelection(arcs: GetArcs(nodes, 0, 2), null, 1);
 
         FrozenDictionary<Node, NodeProperties> propertiesByNodeNonTicketholders = new Dictionary<Node, NodeProperties>()
         {

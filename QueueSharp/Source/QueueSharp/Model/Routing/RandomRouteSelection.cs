@@ -10,10 +10,10 @@ public class RandomRouteSelection : IRouting
     private readonly FrozenDictionary<Node, ImmutableArray<WeightedArc>> _arcsByOrigin;
     private readonly FrozenDictionary<Node, double> _totalWeight;
     private readonly Random _random;
-    private readonly QueueIsFullBehavior _queueIsFullBehavior;
+    private readonly FrozenDictionary<Node, QueueIsFullBehavior> _queueIsFullBehavior;
 
     public RandomRouteSelection(IEnumerable<WeightedArc> arcs,
-        QueueIsFullBehavior queueIsFullBehavior,
+        FrozenDictionary<Node, QueueIsFullBehavior>? queueIsFullBehavior,
         int? randomSeed)
     {
         _arcsByOrigin = arcs.GroupBy(x => x.Origin)
@@ -22,7 +22,7 @@ public class RandomRouteSelection : IRouting
         _random = randomSeed is null
             ? new Random()
             : new Random(randomSeed.Value);
-        _queueIsFullBehavior = queueIsFullBehavior;
+        _queueIsFullBehavior = queueIsFullBehavior ?? _arcsByOrigin.Keys.ToFrozenDictionary(x => x, x => QueueIsFullBehavior.Baulk);
         _totalWeight = _arcsByOrigin.ToFrozenDictionary(x => x.Key, x => x.Value.Sum(y => y.Weight));
     }
 
@@ -37,7 +37,7 @@ public class RandomRouteSelection : IRouting
         if (outoingArcs.Length == 1)
         {
             Node destination = outoingArcs[0].Destination; // improve performance by skipping the random call
-            return new SeekDestination(destination, _queueIsFullBehavior);
+            return new SeekDestination(destination, _queueIsFullBehavior[origin]);
         }
 
         double randomValue = _random.NextDouble() * _totalWeight[origin];
@@ -47,7 +47,7 @@ public class RandomRouteSelection : IRouting
             cumulativeWeight += outoingArcs[i].Weight;
             if (randomValue <= cumulativeWeight)
             {
-                return new SeekDestination(outoingArcs[i].Destination, _queueIsFullBehavior);
+                return new SeekDestination(outoingArcs[i].Destination, _queueIsFullBehavior[origin]);
             }
         }
         throw new ImplausibleStateException("An arc should have been selected.");

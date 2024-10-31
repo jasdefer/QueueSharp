@@ -14,6 +14,7 @@ public class ExponentialDistribution : IDurationDistribution
             : new Random(randomSeed.Value);
         _rate = rate;
     }
+
     public int GetDuration()
     {
         int duration = (int)Math.Round(Exponential.Sample(_random, _rate));

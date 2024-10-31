@@ -30,6 +30,7 @@ internal class NodeVisitRecordsValidation
         foreach (IGrouping<Individual, NodeVisitRecord> group in nodeVisitRecords.GroupBy(x => x.Individual))
         {
             int? previousExitTime = null;
+            NodeVisitRecord? previousRecord = null;
             bool previousEventWasBaulking = false;
             foreach (NodeVisitRecord? nodeVisitRecord in group.OrderBy(x => x.ArrivalTime))
             {
@@ -56,6 +57,7 @@ internal class NodeVisitRecordsValidation
                     // The current event is a baulking event, if it is not a service record
                     previousEventWasBaulking = true;
                 }
+                previousRecord = nodeVisitRecord;
             }
         }
     }

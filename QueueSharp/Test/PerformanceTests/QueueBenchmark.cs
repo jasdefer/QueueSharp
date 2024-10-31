@@ -25,7 +25,7 @@ public class QueueBenchmark
         WeightedArc coldToTill = new WeightedArc(coldFood, till, 0.7);
         WeightedArc hotToTill = new WeightedArc(hotFood, till, 1);
 
-        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], QueueIsFullBehavior.Baulk, 1);
+        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], null, 1);
 
         IDurationDistribution coldArrival = new ExponentialDistribution(rate: 0.003, randomSeed: 1);
         IDurationDistribution hotArrival = new ExponentialDistribution(rate: 0.002, randomSeed: 2);
