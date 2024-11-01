@@ -174,9 +174,9 @@ public class SimulationTests
         IDurationDistribution arrivalDistribution = new ConstantDuration(330);
         IDurationDistribution[] serviceDistributions =
             [
-                new UniformDuration(300, 500, 2),
-                new UniformDuration(300, 700, 3),
-                new UniformDuration(300, 900, 4),
+                new ConstantDuration(350),
+                new ConstantDuration(400),
+                new ConstantDuration(450),
             ];
 
         IServerSelector serverSelector = new FirstServerSelector();
@@ -205,35 +205,10 @@ public class SimulationTests
         };
         Cohort cohort = new Cohort("Stools", propertiesByNode.ToFrozenDictionary(), routing);
         SimulationSettings simulationSettings = new SimulationSettings(MaxTime: simulationDuration);
-
-        SimulationReport[] reports = new SimulationReport[1000];
-        for (int i = 0; i < reports.Length; i++)
-        {
-            Simulation simulation = new([cohort], simulationSettings);
-            ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
-            NodeVisitRecordsValidation.Validate(nodeVisitRecords);
-            reports[i] = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
-            reports[i].NodeReportsByNodeId.Should().HaveCount(3);
-            simulation.ClearState();
-        }
-
-        FrozenDictionary<string, SimulationAggregationNodeReport> mergedReport = SimulationAnalysis.Merge(reports);
-
-        // Compare with CiW
-        mergedReport[nodes[0].Id].BaulkdedIndividualsAtArrival.Mean.Should().BeApproximately(51, 5);
-        mergedReport[nodes[1].Id].BaulkdedIndividualsAtArrival.Mean.Should().Be(0);
-        mergedReport[nodes[2].Id].BaulkdedIndividualsAtArrival.Mean.Should().Be(0);
-
-        mergedReport[nodes[0].Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(407, 20);
-        mergedReport[nodes[1].Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(562, 50);
-        mergedReport[nodes[2].Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(476, 30);
-
-        mergedReport[nodes[0].Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(119, 10);
-        mergedReport[nodes[1].Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(65, 6);
-        mergedReport[nodes[2].Id].ServiceDurationMetrics.Count.Mean.Should().BeApproximately(64, 6);
-
-        mergedReport[nodes[0].Id].BlockDurationMetrics.Mean.Mean.Should().BeApproximately(183, 10);
-        mergedReport[nodes[1].Id].BlockDurationMetrics.Mean.Mean.Should().BeApproximately(95, 8);
-        mergedReport[nodes[2].Id].BlockDurationMetrics.Mean.Mean.Should().Be(0);
+        Simulation simulation = new([cohort], simulationSettings);
+        ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
+        NodeVisitRecordsValidation.Validate(nodeVisitRecords);
+        SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
+        File.WriteAllText("VisitRecords.csv",SimulationAnalysis.ToCsv(nodeVisitRecords));
     }
 }

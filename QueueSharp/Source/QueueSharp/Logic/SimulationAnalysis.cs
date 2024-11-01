@@ -151,6 +151,7 @@ public static class SimulationAnalysis
                 SetMetrics blockedDurationMetrics = nodeServiceRecords
                     .OfType<NodeServiceRecord>()
                     .Select(x => x.BlockDuration)
+                    .Where(x => x > 0)
                     .ComputeSetMetrics();
                 int baulkedAtArrival = nodeServiceRecords
                     .OfType<BaulkingAtArrival>()
