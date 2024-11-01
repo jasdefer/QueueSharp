@@ -164,7 +164,7 @@ public class SimulationTests
             new WeightedArc(nodes[0], nodes[1]),
             new WeightedArc(nodes[1], nodes[2]),
             ];
-        Dictionary<Node, QueueIsFullBehavior> queueFullBehaviorByNode = new ()
+        Dictionary<Node, QueueIsFullBehavior> queueFullBehaviorByNode = new()
         {
             { nodes[0], QueueIsFullBehavior.Baulk},
             { nodes[1], QueueIsFullBehavior.WaitAndBlockCurrentServer},
@@ -172,7 +172,7 @@ public class SimulationTests
         };
         IRouting routing = new RandomRouteSelection(arcs, queueFullBehaviorByNode.ToFrozenDictionary(), 1);
         IDurationDistribution arrivalDistribution = new ConstantDuration(330);
-        IDurationDistribution[] serviceDistributions = 
+        IDurationDistribution[] serviceDistributions =
             [
                 new UniformDuration(300, 500, 2),
                 new UniformDuration(300, 700, 3),
@@ -184,11 +184,11 @@ public class SimulationTests
         int simulationDuration = 40000;
         Dictionary<Node, NodeProperties> propertiesByNode = new()
         {
-            { 
+            {
                 nodes[0],
                 new NodeProperties(ArrivalDistributionSelector: arrivalDistribution.ToSelector(0, 120000, 5),
                     ServiceDurationSelector: serviceDistributions[0].ToSelector(0, simulationDuration * 2, 5),
-                    ServerSelector: serverSelector) 
+                    ServerSelector: serverSelector)
             },
             {
                 nodes[1],
@@ -219,6 +219,7 @@ public class SimulationTests
 
         FrozenDictionary<string, SimulationAggregationNodeReport> mergedReport = SimulationAnalysis.Merge(reports);
 
+        // Compare with CiW
         mergedReport[nodes[0].Id].BaulkdedIndividualsAtArrival.Mean.Should().BeApproximately(51, 5);
         mergedReport[nodes[1].Id].BaulkdedIndividualsAtArrival.Mean.Should().Be(0);
         mergedReport[nodes[2].Id].BaulkdedIndividualsAtArrival.Mean.Should().Be(0);

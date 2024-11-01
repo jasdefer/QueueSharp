@@ -147,19 +147,19 @@ public class Simulation
         {
             return;
         }
-        (Individual overflowIndividual, int overflowIndividualArrival) = origin.OverflowQueue[0];
+        Overflow overflow = origin.OverflowQueue[0];
         origin.OverflowQueue.RemoveAt(0);
-        for (int i = 0; i < origin.ServingIndividuals.Length; i++)
+        for (int i = 0; i < overflow.BlockedNode.ServingIndividuals.Length; i++)
         {
-            if (origin.ServingIndividuals[i] == individual)
+            if (overflow.BlockedNode.ServingIndividuals[i] == overflow.Individual)
             {
                 // ToDo: Performance improvement by caching the index of the server
-                origin.ServingIndividuals[i] = null;
+                overflow.BlockedNode.ServingIndividuals[i] = null;
                 break;
             }
         }
-        _state.Exit(overflowIndividual, origin, overflowIndividualArrival, _time);
-        IndividualArrives(overflowIndividual, origin);
+        _state.Exit(overflow.Individual, overflow.BlockedNode, overflow.ArrivalTime, _time);
+        IndividualArrives(overflow.Individual, origin);
     }
 
     private bool TryLeaveIndividual(Individual individual, Node origin, int arrivalTime)
@@ -187,7 +187,8 @@ public class Simulation
                         _state!.Baulk(individual, seekDestination.Destination, _time, BaulkingReson.QueueFull);
                         return true;
                     case QueueIsFullBehavior.WaitAndBlockCurrentServer:
-                        seekDestination.Destination.OverflowQueue.Add(individual);
+                        Overflow overflow = new(individual, origin, arrivalTime);
+                        seekDestination.Destination.OverflowQueue.Add(overflow);
                         return false;
                     default:
                         throw new NotImplementedEventException(seekDestination.QueueIsFullBehavior.ToString());

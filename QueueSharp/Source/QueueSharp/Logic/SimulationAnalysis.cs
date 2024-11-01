@@ -1,5 +1,8 @@
-﻿using QueueSharp.Model.Components;
+﻿using QueueSharp.Logic.Helper;
+using QueueSharp.Model.Components;
+using QueueSharp.Model.Exceptions;
 using System.Collections.Frozen;
+using System.Text;
 
 namespace QueueSharp.Logic;
 public static class SimulationAnalysis
@@ -184,5 +187,78 @@ public static class SimulationAnalysis
             mergedNodeReports.Add(nodeId, mergedNodeReport);
         }
         return mergedNodeReports.ToFrozenDictionary();
+    }
+
+    internal static string ToCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
+    {
+        StringBuilder stringBuilder = new();
+        stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual It\tCohort Id\tQueue Size at Arrival\tBaulking\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
+        foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords.OrderBy(x => x.ArrivalTime))
+        {
+            stringBuilder.Append($"{nodeVisitRecord.ArrivalTime}\t{nodeVisitRecord.Node.Id}\t{nodeVisitRecord.Individual.Id}\t{nodeVisitRecord.Individual.Cohort.Id}\t{nodeVisitRecord.QueueSizeAtArrival}");
+            switch (nodeVisitRecord)
+            {
+                case NodeServiceRecord nodeServiceRecord:
+                    stringBuilder.Append($"\t\t{nodeServiceRecord.ServiceStartTime}\t{nodeServiceRecord.ServiceEndTime}\t{nodeServiceRecord.ExitTime}\t{nodeServiceRecord.QueueSizeAtExit}\t{nodeServiceRecord.Destination?.Id ?? ""}");
+                    break;
+                case BaulkingAtArrival:
+                    stringBuilder.Append("\tBaulked at Arrival");
+                    break;
+                case BaulkingAtStartService baulking:
+                    stringBuilder.Append($"\tBaulked at Service Start\t{baulking.ServiceStartTime}");
+                    break;
+                default:
+                    throw new NotImplementedEventException(nodeVisitRecord.GetType().Name);
+            }
+            stringBuilder.Append(Environment.NewLine);
+        }
+        return stringBuilder.ToString();
+    }
+
+    internal static string GetQueueLengthPerNodeOverTimeCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
+    {
+        Dictionary<string, Dictionary<int, int>> queueDeltaPerNodeAndTime = [];
+        foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords)
+        {
+            if (!queueDeltaPerNodeAndTime.TryGetValue(nodeVisitRecord.Node.Id, out Dictionary<int, int>? queueDeltaPerTime))
+            {
+                queueDeltaPerTime = [];
+                queueDeltaPerNodeAndTime.Add(nodeVisitRecord.Node.Id, queueDeltaPerTime);
+            }
+
+            switch (nodeVisitRecord)
+            {
+                case NodeServiceRecord nodeServiceRecord:
+                    queueDeltaPerTime.Increment(nodeVisitRecord.ArrivalTime);
+                    queueDeltaPerTime.Decrement(nodeServiceRecord.ExitTime);
+
+                    // In case of blockage add a 0 delta marker to indicate end service time without exiting
+                    _ = queueDeltaPerTime.TryAdd(nodeServiceRecord.ServiceEndTime, 0);
+                    break;
+                case BaulkingAtArrival:
+                    break;
+                case BaulkingAtStartService baulking:
+                    queueDeltaPerTime.Increment(nodeVisitRecord.ArrivalTime);
+                    queueDeltaPerTime.Decrement(baulking.ServiceStartTime);
+                    break;
+                default:
+                    throw new NotImplementedEventException(nodeVisitRecord.GetType().Name);
+            }
+        }
+
+        StringBuilder stringBuilder = new();
+        stringBuilder.AppendLine("Node\tTime\tQueue Length");
+        foreach (string nodeId in queueDeltaPerNodeAndTime.Keys)
+        {
+            int queueLength = 0;
+            stringBuilder.AppendLine($"{nodeId}\t0\t{queueLength}");
+            foreach ((int time, int delta) in queueDeltaPerNodeAndTime[nodeId].OrderBy(x => x.Key))
+            {
+                queueLength += delta;
+                stringBuilder.AppendLine($"{nodeId}\t{time}\t{queueLength}");
+            }
+        }
+
+        return stringBuilder.ToString();
     }
 }

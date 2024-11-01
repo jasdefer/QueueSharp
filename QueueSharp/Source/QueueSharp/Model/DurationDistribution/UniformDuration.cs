@@ -12,7 +12,7 @@ public class UniformDuration : IDurationDistribution
         _random = randomSeed is null
             ? new Random()
             : new Random(randomSeed.Value);
-        if(min >= max)
+        if (min >= max)
         {
             throw new ArgumentOutOfRangeException(nameof(max));
         }
