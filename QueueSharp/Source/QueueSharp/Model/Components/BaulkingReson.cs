@@ -1,5 +1,5 @@
 ﻿namespace QueueSharp.Model.Components;
-public enum BaulkingReson
+public enum RejectionReason
 {
     QueueFull,
     CannotSelectServer,

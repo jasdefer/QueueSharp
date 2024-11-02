@@ -4,7 +4,7 @@ namespace QueueSharp.Model.Routing;
 public enum QueueIsFullBehavior
 {
     WaitAndBlockCurrentServer,
-    Baulk
+    RejectIndividual
 }
 
 public interface IRouting

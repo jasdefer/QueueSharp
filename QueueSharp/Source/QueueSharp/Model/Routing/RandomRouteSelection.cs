@@ -22,7 +22,7 @@ public class RandomRouteSelection : IRouting
         _random = randomSeed is null
             ? new Random()
             : new Random(randomSeed.Value);
-        _queueIsFullBehavior = queueIsFullBehavior ?? _arcsByOrigin.Keys.ToFrozenDictionary(x => x, x => QueueIsFullBehavior.Baulk);
+        _queueIsFullBehavior = queueIsFullBehavior ?? _arcsByOrigin.Keys.ToFrozenDictionary(x => x, x => QueueIsFullBehavior.RejectIndividual);
         _totalWeight = _arcsByOrigin.ToFrozenDictionary(x => x.Key, x => x.Value.Sum(y => y.Weight));
     }
 
@@ -37,7 +37,7 @@ public class RandomRouteSelection : IRouting
         if (outoingArcs.Length == 1)
         {
             Node destination = outoingArcs[0].Destination; // improve performance by skipping the random call
-            return new SeekDestination(destination, _queueIsFullBehavior[origin]);
+            return new SeekDestination(destination, _queueIsFullBehavior[destination]);
         }
 
         double randomValue = _random.NextDouble() * _totalWeight[origin];
@@ -47,7 +47,8 @@ public class RandomRouteSelection : IRouting
             cumulativeWeight += outoingArcs[i].Weight;
             if (randomValue <= cumulativeWeight)
             {
-                return new SeekDestination(outoingArcs[i].Destination, _queueIsFullBehavior[origin]);
+                Node destination = outoingArcs[i].Destination;
+                return new SeekDestination(destination, _queueIsFullBehavior[destination]);
             }
         }
         throw new ImplausibleStateException("An arc should have been selected.");

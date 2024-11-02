@@ -108,7 +108,7 @@ public class Simulation
 
         if (destination.IsQueueFull)
         {
-            _state!.Baulk(individual, destination, _time, BaulkingReson.QueueFull);
+            _state!.Reject(individual, destination, _time, RejectionReason.QueueFull);
             return;
         }
         destination.Queue.Add((individual, _time));
@@ -133,36 +133,40 @@ public class Simulation
     private void CompleteService(Individual individual, Node origin, int arrivalTime, int server)
     {
         _state!.CompleteService(individual, origin, arrivalTime, _time);
-        bool individualLeavesOrigin = TryLeaveIndividual(individual, origin, arrivalTime);
+        bool individualLeavesOrigin = TryLeaveIndividual(individual, origin, arrivalTime, server);
         if (!individualLeavesOrigin)
         {
             return;
         }
 
         // Individual is leaving the origin node
-        IndividualLeavesNode(server, origin);
+        IndividualLeftNode(server, origin);
 
-        // Handle Overflow queueu
-        if (origin.OverflowQueue.Count == 0)
+        // Handle Overflow queue
+        // This overflow handling can be chained if multiple blocked nodes are connected
+        Queue<Node> overflowHandling = [];
+        overflowHandling.Enqueue(origin);
+        while (overflowHandling.Count > 0)
         {
-            return;
-        }
-        Overflow overflow = origin.OverflowQueue[0];
-        origin.OverflowQueue.RemoveAt(0);
-        for (int i = 0; i < overflow.BlockedNode.ServingIndividuals.Length; i++)
-        {
-            if (overflow.BlockedNode.ServingIndividuals[i] == overflow.Individual)
+            Node nodeWithOverflowQueue = overflowHandling.Dequeue();
+            if (nodeWithOverflowQueue.OverflowQueue.Count == 0)
             {
-                // ToDo: Performance improvement by caching the index of the server
-                overflow.BlockedNode.ServingIndividuals[i] = null;
                 break;
             }
+
+            Overflow overflow = nodeWithOverflowQueue.OverflowQueue[0];
+            nodeWithOverflowQueue.OverflowQueue.RemoveAt(0);
+            IndividualArrives(overflow.Individual, nodeWithOverflowQueue);
+
+            IndividualLeftNode(overflow.BlockedServer, overflow.BlockedNode);
+            // The node from which the overflow is coming from, might now accept also a new overflowing individual
+            // Check this in the next iteration of this queue
+            overflowHandling.Enqueue(overflow.BlockedNode);
+            _state.Exit(overflow.Individual, overflow.BlockedNode, overflow.ArrivalTime, _time);
         }
-        _state.Exit(overflow.Individual, overflow.BlockedNode, overflow.ArrivalTime, _time);
-        IndividualArrives(overflow.Individual, origin);
     }
 
-    private bool TryLeaveIndividual(Individual individual, Node origin, int arrivalTime)
+    private bool TryLeaveIndividual(Individual individual, Node origin, int arrivalTime, int server)
     {
         RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(origin, _state!);
         switch (routingDecision)
@@ -181,13 +185,13 @@ public class Simulation
                 // Queue at destination is full
                 switch (seekDestination.QueueIsFullBehavior)
                 {
-                    case QueueIsFullBehavior.Baulk:
+                    case QueueIsFullBehavior.RejectIndividual:
                         _state!.Exit(individual, origin, arrivalTime, _time);
                         _state!.AddArrival(individual, seekDestination.Destination, _time);
-                        _state!.Baulk(individual, seekDestination.Destination, _time, BaulkingReson.QueueFull);
+                        _state!.Reject(individual, seekDestination.Destination, _time, RejectionReason.QueueFull);
                         return true;
                     case QueueIsFullBehavior.WaitAndBlockCurrentServer:
-                        Overflow overflow = new(individual, origin, arrivalTime);
+                        Overflow overflow = new(individual, origin, server, arrivalTime);
                         seekDestination.Destination.OverflowQueue.Add(overflow);
                         return false;
                     default:
@@ -207,7 +211,7 @@ public class Simulation
         {
             if (destination.IsQueueFull)
             {
-                _state!.Baulk(individual, destination, arrivalTime, BaulkingReson.CannotSelectServer, _time);
+                _state!.Reject(individual, destination, arrivalTime, RejectionReason.CannotSelectServer, _time);
                 return;
             }
             destination.Queue.Add((individual, arrivalTime));
@@ -227,7 +231,7 @@ public class Simulation
         bool canCompleteService = serviceDurationSelector.TryGetNextTime(_time, out int? serviceCompleted, false);
         if (!canCompleteService)
         {
-            _state!.Baulk(individual, node, arrivalTime, BaulkingReson.CannotCompleteService, _time);
+            _state!.Reject(individual, node, arrivalTime, RejectionReason.CannotCompleteService, _time);
             return false;
         }
         CompleteServiceEvent completeServiceEvent = new(Timestamp: serviceCompleted!.Value,
@@ -240,12 +244,12 @@ public class Simulation
         return true;
     }
 
-    private void IndividualLeavesNode(int server, Node origin)
+    private void IndividualLeftNode(int server, Node origin)
     {
         while (!origin.IsQueueEmpty)
         {
             // Try to start the service of the next individual
-            // If the individual baulks, try the next individual
+            // If the individual is rejected, try the next individual
             // If the individual can get served, break this loop
             (Individual nextIndividual, int nextIndividualsArrivalTime) = origin.Queue[0];
             origin.Queue.RemoveAt(0);

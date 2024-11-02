@@ -22,28 +22,28 @@ public record MetricsAggregation(
 
 public record SimulationReport(FrozenDictionary<string, SimulationNodeReport> NodeReportsByNodeId)
 {
-    public int BaulkdedIndividualsAtArrival => NodeReportsByNodeId.Sum(x => x.Value.BaulkdedIndividualsAtArrival);
-    public int BaulkdedIndividualsAtServiceStart => NodeReportsByNodeId.Sum(x => x.Value.BaulkdedIndividualsAtServiceStart);
-    public int BaulkedIndividuals => BaulkdedIndividualsAtArrival + BaulkdedIndividualsAtServiceStart;
+    public int RejectedIndividualsAtArrival => NodeReportsByNodeId.Sum((Func<KeyValuePair<string, SimulationNodeReport>, int>)(x => (int)x.Value.RejectedIndividualsAtArrival));
+    public int RejectedIndividualsAtServiceStart => NodeReportsByNodeId.Sum((Func<KeyValuePair<string, SimulationNodeReport>, int>)(x => (int)x.Value.RejectedIndividualsAtServiceStart));
+    public int RejectedIndividuals => RejectedIndividualsAtArrival + RejectedIndividualsAtServiceStart;
     public int ServiceIndividuals => NodeReportsByNodeId.Sum(x => x.Value.ServedIndividuals);
 };
 
 public record SimulationNodeReport(SetMetrics WaitingTimeMetrics,
     SetMetrics ServiceDurationMetrics,
     SetMetrics BlockDurationMetrics,
-    int BaulkdedIndividualsAtArrival,
-    int BaulkdedIndividualsAtServiceStart)
+    int RejectedIndividualsAtArrival,
+    int RejectedIndividualsAtServiceStart)
 {
     public int ServedIndividuals => (int)ServiceDurationMetrics.Count;
     public int ServiceDuration => (int)ServiceDurationMetrics.Sum;
-    public int BaulkedIndividuals => BaulkdedIndividualsAtArrival + BaulkdedIndividualsAtServiceStart;
+    public int RejectedIndividuals => RejectedIndividualsAtArrival + RejectedIndividualsAtServiceStart;
 };
 
 public record SimulationAggregationNodeReport(MetricsAggregation WaitingTimeMetrics,
     MetricsAggregation ServiceDurationMetrics,
     MetricsAggregation BlockDurationMetrics,
-    SetMetrics BaulkdedIndividualsAtArrival,
-    SetMetrics BaulkdedIndividualsAtServiceStart)
+    SetMetrics RejectedIndividualsAtArrival,
+    SetMetrics RejectedIndividualsAtServiceStart)
 {
     public double MeanServedIndividuals => ServiceDurationMetrics.Count.Mean;
     public double MeanServiceDuration => ServiceDurationMetrics.Sum.Mean;

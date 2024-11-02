@@ -153,17 +153,17 @@ public static class SimulationAnalysis
                     .Select(x => x.BlockDuration)
                     .Where(x => x > 0)
                     .ComputeSetMetrics();
-                int baulkedAtArrival = nodeServiceRecords
-                    .OfType<BaulkingAtArrival>()
+                int rejectedAtArrival = nodeServiceRecords
+                    .OfType<RejectionAtArrival>()
                     .Count();
-                int baulkedAtService = nodeServiceRecords
-                    .OfType<BaulkingAtStartService>()
+                int rejectedAtService = nodeServiceRecords
+                    .OfType<RejectionAtStartService>()
                     .Count();
                 return new SimulationNodeReport(waitingDurationMetrics,
                     serviceDurationMetrics,
                     blockedDurationMetrics,
-                    baulkedAtArrival,
-                    baulkedAtService);
+                    rejectedAtArrival,
+                    rejectedAtService);
             });
         return new SimulationReport(simulationReport);
     }
@@ -183,8 +183,8 @@ public static class SimulationAnalysis
             SimulationAggregationNodeReport mergedNodeReport = new(WaitingTimeMetrics: simulationNodeReports.Select(x => x.WaitingTimeMetrics).Merge(),
                 ServiceDurationMetrics: simulationNodeReports.Select(x => x.ServiceDurationMetrics).Merge(),
                 BlockDurationMetrics: simulationNodeReports.Select(x => x.BlockDurationMetrics).Merge(),
-                BaulkdedIndividualsAtArrival: simulationNodeReports.Select(x => x.BaulkdedIndividualsAtArrival).ComputeSetMetrics(),
-                BaulkdedIndividualsAtServiceStart: simulationNodeReports.Select(x => x.BaulkdedIndividualsAtServiceStart).ComputeSetMetrics());
+                RejectedIndividualsAtArrival: simulationNodeReports.Select(x => x.RejectedIndividualsAtArrival).ComputeSetMetrics(),
+                RejectedIndividualsAtServiceStart: simulationNodeReports.Select(x => x.RejectedIndividualsAtServiceStart).ComputeSetMetrics());
             mergedNodeReports.Add(nodeId, mergedNodeReport);
         }
         return mergedNodeReports.ToFrozenDictionary();
@@ -193,7 +193,7 @@ public static class SimulationAnalysis
     internal static string ToCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
     {
         StringBuilder stringBuilder = new();
-        stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual It\tCohort Id\tQueue Size at Arrival\tBaulking\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
+        stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual It\tCohort Id\tQueue Size at Arrival\tRejection\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
         foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords.OrderBy(x => x.ArrivalTime))
         {
             stringBuilder.Append($"{nodeVisitRecord.ArrivalTime}\t{nodeVisitRecord.Node.Id}\t{nodeVisitRecord.Individual.Id}\t{nodeVisitRecord.Individual.Cohort.Id}\t{nodeVisitRecord.QueueSizeAtArrival}");
@@ -202,11 +202,11 @@ public static class SimulationAnalysis
                 case NodeServiceRecord nodeServiceRecord:
                     stringBuilder.Append($"\t\t{nodeServiceRecord.ServiceStartTime}\t{nodeServiceRecord.ServiceEndTime}\t{nodeServiceRecord.ExitTime}\t{nodeServiceRecord.QueueSizeAtExit}\t{nodeServiceRecord.Destination?.Id ?? ""}");
                     break;
-                case BaulkingAtArrival:
-                    stringBuilder.Append("\tBaulked at Arrival");
+                case RejectionAtArrival:
+                    stringBuilder.Append("\tRejected at Arrival");
                     break;
-                case BaulkingAtStartService baulking:
-                    stringBuilder.Append($"\tBaulked at Service Start\t{baulking.ServiceStartTime}");
+                case RejectionAtStartService rejection:
+                    stringBuilder.Append($"\tRejected at Service Start\t{rejection.ServiceStartTime}");
                     break;
                 default:
                     throw new NotImplementedEventException(nodeVisitRecord.GetType().Name);
@@ -236,11 +236,11 @@ public static class SimulationAnalysis
                     // In case of blockage add a 0 delta marker to indicate end service time without exiting
                     _ = queueDeltaPerTime.TryAdd(nodeServiceRecord.ServiceEndTime, 0);
                     break;
-                case BaulkingAtArrival:
+                case RejectionAtArrival:
                     break;
-                case BaulkingAtStartService baulking:
+                case RejectionAtStartService rejection:
                     queueDeltaPerTime.Increment(nodeVisitRecord.ArrivalTime);
-                    queueDeltaPerTime.Decrement(baulking.ServiceStartTime);
+                    queueDeltaPerTime.Decrement(rejection.ServiceStartTime);
                     break;
                 default:
                     throw new NotImplementedEventException(nodeVisitRecord.GetType().Name);

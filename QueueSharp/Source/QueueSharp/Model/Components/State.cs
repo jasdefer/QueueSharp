@@ -46,9 +46,9 @@ public class State
         _nodeVisits[individual][node][arrivalTime].ServiceEndTime = time;
     }
 
-    internal void Baulk(Individual individual, Node node, int arrivalTime, BaulkingReson baulkingReson, int? startServiceTime = null)
+    internal void Reject(Individual individual, Node node, int arrivalTime, RejectionReason rejectionReason, int? startServiceTime = null)
     {
-        _nodeVisits[individual][node][arrivalTime].BaulkingReson = baulkingReson;
+        _nodeVisits[individual][node][arrivalTime].RejectionReason = rejectionReason;
         _nodeVisits[individual][node][arrivalTime].ServiceStartTime = startServiceTime;
     }
 
@@ -67,17 +67,17 @@ public class State
 
     private static NodeVisitRecord Map(Individual individual, Node node, int arrival, NodeVisit nodeVisit)
     {
-        if (nodeVisit.BaulkingReson == BaulkingReson.QueueFull)
+        if (nodeVisit.RejectionReason == RejectionReason.QueueFull)
         {
-            return new BaulkingAtArrival(individual,
+            return new RejectionAtArrival(individual,
                 node,
                 arrival,
                 nodeVisit.QueueSizeAtArrival!.Value);
         }
-        else if (nodeVisit.BaulkingReson == BaulkingReson.CannotCompleteService ||
-            nodeVisit.BaulkingReson == BaulkingReson.CannotSelectServer)
+        else if (nodeVisit.RejectionReason == RejectionReason.CannotCompleteService ||
+            nodeVisit.RejectionReason == RejectionReason.CannotSelectServer)
         {
-            return new BaulkingAtStartService(individual,
+            return new RejectionAtStartService(individual,
                 node,
                 arrival,
                 nodeVisit.ServiceStartTime!.Value,
@@ -124,6 +124,6 @@ public class State
         internal int? QueueSizeAtArrival { get; set; }
         internal int? QueueSizeAtExit { get; set; }
         internal int? Server { get; set; }
-        internal BaulkingReson? BaulkingReson { get; set; }
+        internal RejectionReason? RejectionReason { get; set; }
     }
 }

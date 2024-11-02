@@ -9,8 +9,8 @@ public abstract record NodeVisitRecord(Individual Individual,
     int ArrivalTime,
     int QueueSizeAtArrival);
 
-[DebuggerDisplay("Baulking from {Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}")]
-public sealed record BaulkingAtArrival(Individual Individual,
+[DebuggerDisplay("Rejection from {Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}")]
+public sealed record RejectionAtArrival(Individual Individual,
     Node Node,
     int ArrivalTime,
     int QueueSizeAtArrival) : NodeVisitRecord(Individual, Node, ArrivalTime, QueueSizeAtArrival);
@@ -24,8 +24,8 @@ public abstract record NodeServiceStartRecord(Individual Individual,
     public int WaitingDuration => ServiceStartTime - ArrivalTime;
 };
 
-[DebuggerDisplay("Baulking service from {Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}")]
-public sealed record BaulkingAtStartService(Individual Individual,
+[DebuggerDisplay("Reject service from {Individual.Id} of {Individual.Cohort.Id} at {Node.Id} arrived at {ArrivalTime}")]
+public sealed record RejectionAtStartService(Individual Individual,
     Node Node,
     int ArrivalTime,
     int QueueSizeAtArrival,

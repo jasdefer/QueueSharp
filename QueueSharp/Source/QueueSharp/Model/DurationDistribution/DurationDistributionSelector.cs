@@ -8,20 +8,24 @@ public record DurationDistributionSelector : IntervalDictionary<IDurationDistrib
     public readonly static DurationDistributionSelector None = new DurationDistributionSelector([]);
     public static DurationDistributionSelector Empty = new DurationDistributionSelector(Array.Empty<(Interval, IDurationDistribution)>());
     private readonly Random _random;
+    private readonly double? _initialArrivalFraction;
 
-    public DurationDistributionSelector(IEnumerable<(Interval, IDurationDistribution)> durationDistributions, int? randomSeed = null)
+    public DurationDistributionSelector(IEnumerable<(Interval, IDurationDistribution)> durationDistributions,
+        int? randomSeed = null,
+        double? initialArrivalFraction = null)
         : base(durationDistributions)
     {
         _random = randomSeed is null
             ? new Random()
             : new Random(randomSeed.Value);
+        _initialArrivalFraction = initialArrivalFraction;
     }
 
     internal bool TryGetNextTime(int time, out int? arrival, bool isInitialArrival = false)
     {
         arrival = 0;
         double fraction = isInitialArrival
-            ? _random.NextDouble()
+            ? _initialArrivalFraction ?? _random.NextDouble()
             : 1;
 
         for (int i = 0; i < _values.Length; i++)

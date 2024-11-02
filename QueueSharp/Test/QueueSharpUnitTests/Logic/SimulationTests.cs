@@ -166,7 +166,7 @@ public class SimulationTests
             ];
         Dictionary<Node, QueueIsFullBehavior> queueFullBehaviorByNode = new()
         {
-            { nodes[0], QueueIsFullBehavior.Baulk},
+            { nodes[0], QueueIsFullBehavior.RejectIndividual},
             { nodes[1], QueueIsFullBehavior.WaitAndBlockCurrentServer},
             { nodes[2], QueueIsFullBehavior.WaitAndBlockCurrentServer},
         };
@@ -186,7 +186,7 @@ public class SimulationTests
         {
             {
                 nodes[0],
-                new NodeProperties(ArrivalDistributionSelector: arrivalDistribution.ToSelector(0, 120000, 5),
+                new NodeProperties(ArrivalDistributionSelector: arrivalDistribution.ToSelector(0, 120000, 5, 1),
                     ServiceDurationSelector: serviceDistributions[0].ToSelector(0, simulationDuration * 2, 5),
                     ServerSelector: serverSelector)
             },
@@ -209,6 +209,21 @@ public class SimulationTests
         ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
         NodeVisitRecordsValidation.Validate(nodeVisitRecords);
         SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
-        File.WriteAllText("VisitRecords.csv",SimulationAnalysis.ToCsv(nodeVisitRecords));
+        File.WriteAllText("VisitRecords.csv", SimulationAnalysis.ToCsv(nodeVisitRecords));
+
+        report.NodeReportsByNodeId[nodes[0].Id].RejectedIndividuals.Should().Be(29);
+        report.NodeReportsByNodeId[nodes[0].Id].ServiceDurationMetrics.Sum.Should().Be(31500);
+        report.NodeReportsByNodeId[nodes[0].Id].ServiceDurationMetrics.Count.Should().Be(90);
+        report.NodeReportsByNodeId[nodes[0].Id].BlockDurationMetrics.Sum.Should().Be(7950);
+
+        report.NodeReportsByNodeId[nodes[1].Id].ServiceDurationMetrics.Count.Should().Be(88);
+        report.NodeReportsByNodeId[nodes[1].Id].BlockDurationMetrics.Sum.Should().Be(3900);
+
+        report.NodeReportsByNodeId[nodes[2].Id].ServiceDurationMetrics.Count.Should().Be(86);
+        report.NodeReportsByNodeId[nodes[2].Id].BlockDurationMetrics.Sum.Should().Be(0);
+
+        nodeVisitRecords.Where(x => x.Node.Id == nodes[0].Id).Sum(x => x.ArrivalTime).Should().Be(2356200);
+        nodeVisitRecords.Where(x => x.Node.Id == nodes[1].Id).Sum(x => x.ArrivalTime).Should().Be(1703940);
+        nodeVisitRecords.Where(x => x.Node.Id == nodes[2].Id).Sum(x => x.ArrivalTime).Should().Be(1701180);
     }
 }

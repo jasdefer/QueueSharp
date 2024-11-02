@@ -31,12 +31,12 @@ internal class NodeVisitRecordsValidation
         {
             int? previousExitTime = null;
             NodeVisitRecord? previousRecord = null;
-            bool previousEventWasBaulking = false;
+            bool previousEventWasRejection = false;
             foreach (NodeVisitRecord? nodeVisitRecord in group.OrderBy(x => x.ArrivalTime))
             {
-                if (previousEventWasBaulking)
+                if (previousEventWasRejection)
                 {
-                    throw new ImplausibleStateException("No records can occur after a baulking record, because the individual left the system.");
+                    throw new ImplausibleStateException("No records can occur after a rejection record, because the individual left the system.");
                 }
                 if (previousExitTime is null)
                 {
@@ -54,8 +54,8 @@ internal class NodeVisitRecordsValidation
                 }
                 else
                 {
-                    // The current event is a baulking event, if it is not a service record
-                    previousEventWasBaulking = true;
+                    // The current event is a rejection event, if it is not a service record
+                    previousEventWasRejection = true;
                 }
                 previousRecord = nodeVisitRecord;
             }

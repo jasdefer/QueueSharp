@@ -11,9 +11,10 @@ public static class DurationDistributionHelper
     public static DurationDistributionSelector ToSelector(this IDurationDistribution durationDistribution,
         int start,
         int end,
-        int? randomSeed = null)
+        int? randomSeed = null,
+        double? initialArrivalFraction = null)
     {
-        return new DurationDistributionSelector([(new Interval(start, end), durationDistribution)], randomSeed);
+        return new DurationDistributionSelector([(new Interval(start, end), durationDistribution)], randomSeed, initialArrivalFraction);
     }
 }
 

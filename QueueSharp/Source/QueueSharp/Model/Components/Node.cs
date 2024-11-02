@@ -2,7 +2,7 @@
 
 namespace QueueSharp.Model.Components;
 
-public record Overflow(Individual Individual, Node BlockedNode, int ArrivalTime);
+public record Overflow(Individual Individual, Node BlockedNode, int BlockedServer, int ArrivalTime);
 
 [DebuggerDisplay("Node '{Id}' with {ServerCount} servers")]
 public class Node
@@ -36,7 +36,7 @@ public class Node
 
     /// <summary>
     /// Individuals targeting this node after leaving other nodes are prevented from enqueueing if this node's queue is full.
-    /// They can baulk or block the current server of the origin node and queue up in this <see cref="OverflowQueue"/> until capacity in the destination queue is available again.
+    /// They can reject or block the current server of the origin node and queue up in this <see cref="OverflowQueue"/> until capacity in the destination queue is available again.
     /// </summary>
     public List<Overflow> OverflowQueue { get; } = [];
 
