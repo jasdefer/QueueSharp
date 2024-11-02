@@ -14,6 +14,7 @@ public class QueueBenchmark
 {
     [Params(20000, 200000, 2000000)]
     public int SimulationRuntime { get; set; }
+
     [Benchmark]
     public int RunThreeNodeExampleFromCiw()
     {

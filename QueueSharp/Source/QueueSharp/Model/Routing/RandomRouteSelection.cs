@@ -22,7 +22,11 @@ public class RandomRouteSelection : IRouting
         _random = randomSeed is null
             ? new Random()
             : new Random(randomSeed.Value);
-        _queueIsFullBehavior = queueIsFullBehavior ?? _arcsByOrigin.Keys.ToFrozenDictionary(x => x, x => QueueIsFullBehavior.RejectIndividual);
+        _queueIsFullBehavior = queueIsFullBehavior ?? arcs
+            .Select(x => x.Origin)
+            .Union(arcs.Select(x => x.Destination))
+            .Distinct()
+            .ToFrozenDictionary(x => x, x => QueueIsFullBehavior.RejectIndividual);
         _totalWeight = _arcsByOrigin.ToFrozenDictionary(x => x.Key, x => x.Value.Sum(y => y.Weight));
     }
 
