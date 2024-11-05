@@ -9,13 +9,13 @@ public record IntervalDictionary<TValue>
 
     public IntervalDictionary(IEnumerable<(Interval, TValue)> values)
     {
-        if (values.Any(x => values.Any(y => x.Item1 != y.Item1 && x.Item1.Overlaps(y.Item1))))
-        {
-            throw new InvalidInputException($"Duration Distributions Overlap");
-        }
         _values = values
             .OrderBy(x => x.Item1.Start)
             .ToImmutableArray();
+        if (_values.Any(x => _values.Any(y => x.Item1 != y.Item1 && x.Item1.Overlaps(y.Item1))))
+        {
+            throw new InvalidInputException($"Duration Distributions Overlap");
+        }
     }
 
     public bool TryGetAtTime(int time, out int? index, out TValue? value)

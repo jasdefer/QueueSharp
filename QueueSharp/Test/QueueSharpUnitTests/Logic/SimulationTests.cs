@@ -89,6 +89,7 @@ public class SimulationTests
     public void CiwComparison_RandomDestination()
     {
         int simulationRunTime = 20000;
+        int randomSeed = 0;
         Node coldFood = new Node("Cold Food", 1);
         Node hotFood = new Node("Hot Food", 2);
         Node till = new Node("Till", 2);
@@ -97,31 +98,24 @@ public class SimulationTests
         WeightedArc coldToTill = new WeightedArc(coldFood, till, 0.7);
         WeightedArc hotToTill = new WeightedArc(hotFood, till, 1);
 
-        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], null, 1);
-
-        IDurationDistribution coldArrival = new ExponentialDistribution(rate: 0.003, randomSeed: 1);
-        IDurationDistribution hotArrival = new ExponentialDistribution(rate: 0.002, randomSeed: 2);
-
-        IDurationDistribution coldService = new ExponentialDistribution(rate: 0.01, randomSeed: 3);
-        IDurationDistribution hotService = new ExponentialDistribution(rate: 0.004, randomSeed: 4);
-        IDurationDistribution tillService = new ExponentialDistribution(rate: 0.005, randomSeed: 5);
+        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], null, ++randomSeed);
 
         IServerSelector serverSelector = new FirstServerSelector();
         Dictionary<Node, NodeProperties> propertiesByNode = new Dictionary<Node, NodeProperties>
         {
             {
-                coldFood, new NodeProperties(coldArrival.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 6),
-                    coldService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 7),
+                coldFood, new NodeProperties(DistributionFactory.CreateExponential(start: 0, end: simulationRunTime * 2, 0.003, ++randomSeed),
+                    DistributionFactory.CreateExponential(start: 0, end: simulationRunTime * 2, 0.01, ++randomSeed),
                     serverSelector)
             },
             {
-                hotFood, new NodeProperties(hotArrival.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 8),
-                    hotService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 9),
+                hotFood, new NodeProperties(DistributionFactory.CreateExponential(start: 0, end: simulationRunTime * 2, 0.002, ++randomSeed),
+                    DistributionFactory.CreateExponential(start: 0, end: simulationRunTime * 2, 0.004, ++randomSeed),
                     serverSelector)
             },
             {
                 till, new NodeProperties(DurationDistributionSelector.None,
-                    tillService.ToSelector(start: 0, end: simulationRunTime * 2, randomSeed: 10),
+                    DistributionFactory.CreateExponential(start: 0, end: simulationRunTime * 2, 0.005, ++randomSeed),
                     serverSelector)
             }
         };
@@ -154,6 +148,7 @@ public class SimulationTests
     [Fact]
     public void CiwComparison_RestrictedNetworks()
     {
+        int randomSeed = 0;
         Node[] nodes = [
             new Node("Node01", serverCount: 1, queueCapacity: 1),
             new Node("Node02", serverCount: 1, queueCapacity: 1),
@@ -170,15 +165,7 @@ public class SimulationTests
             { nodes[1], QueueIsFullBehavior.WaitAndBlockCurrentServer},
             { nodes[2], QueueIsFullBehavior.WaitAndBlockCurrentServer},
         };
-        IRouting routing = new RandomRouteSelection(arcs, queueFullBehaviorByNode.ToFrozenDictionary(), 1);
-        IDurationDistribution arrivalDistribution = new ConstantDuration(330);
-        IDurationDistribution[] serviceDistributions =
-            [
-                new ConstantDuration(350),
-                new ConstantDuration(400),
-                new ConstantDuration(450),
-            ];
-
+        IRouting routing = new RandomRouteSelection(arcs, queueFullBehaviorByNode.ToFrozenDictionary(), ++randomSeed);
         IServerSelector serverSelector = new FirstServerSelector();
 
         int simulationDuration = 40000;
@@ -186,20 +173,20 @@ public class SimulationTests
         {
             {
                 nodes[0],
-                new NodeProperties(ArrivalDistributionSelector: arrivalDistribution.ToSelector(0, 120000, 5, 1),
-                    ServiceDurationSelector: serviceDistributions[0].ToSelector(0, simulationDuration * 2, 5),
+                new NodeProperties(ArrivalDistributionSelector: DistributionFactory.CreateConstant(start: 0, end: simulationDuration * 2, duration: 330, ++randomSeed, arrivalFraction: 1),
+                    ServiceDurationSelector: DistributionFactory.CreateConstant(start: 0, end: simulationDuration * 2, duration: 350, ++randomSeed),
                     ServerSelector: serverSelector)
             },
             {
                 nodes[1],
                 new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.Empty,
-                    ServiceDurationSelector: serviceDistributions[1].ToSelector(0, simulationDuration * 2, 6),
+                    ServiceDurationSelector: DistributionFactory.CreateConstant(start: 0, end: simulationDuration * 2, duration: 400, ++randomSeed),
                     ServerSelector: serverSelector)
             },
             {
                 nodes[2],
                 new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.Empty,
-                    ServiceDurationSelector: serviceDistributions[2].ToSelector(0, simulationDuration * 2, 7),
+                    ServiceDurationSelector: DistributionFactory.CreateConstant(start: 0, end: simulationDuration * 2, duration: 450, ++randomSeed),
                     ServerSelector: serverSelector)
             },
         };
