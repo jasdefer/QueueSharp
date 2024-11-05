@@ -86,7 +86,7 @@ public class SimulationTests
     }
 
     [Fact]
-    public void CiwComparison_RandomDestination()
+    public async Task CiwComparison_RandomDestination()
     {
         int simulationRunTime = 20000;
         int randomSeed = 0;
@@ -124,17 +124,7 @@ public class SimulationTests
             new Cohort("Cohort01", propertiesByNode.ToFrozenDictionary(), routing)
             ];
         SimulationSettings simulationSettings = new(simulationRunTime);
-        SimulationReport[] reports = new SimulationReport[1000];
-        for (int i = 0; i < reports.Length; i++)
-        {
-            Simulation simulation = new(cohorts, simulationSettings);
-            ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
-            NodeVisitRecordsValidation.Validate(nodeVisitRecords);
-            reports[i] = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
-            reports[i].NodeReportsByNodeId.Should().HaveCount(3);
-            simulation.ClearState();
-        }
-
+        IEnumerable<SimulationReport> reports = await Simulation.RunSimulationsInParallel(cohorts, 1000, simulationSettings);
         FrozenDictionary<string, SimulationAggregationNodeReport> mergedReport = SimulationAnalysis.Merge(reports);
 
         mergedReport[coldFood.Id].WaitingTimeMetrics.Mean.Mean.Should().BeApproximately(41, 5);

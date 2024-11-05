@@ -3,6 +3,7 @@ using QueueSharp.Model.DurationDistribution;
 using QueueSharp.Model.Events;
 using QueueSharp.Model.Exceptions;
 using QueueSharp.Model.Routing;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 
@@ -21,6 +22,32 @@ public class Simulation
     }
 
     public ImmutableArray<Cohort> Cohorts { get; }
+
+    public static async Task<IEnumerable<SimulationReport>> RunSimulationsInParallel(
+        IEnumerable<Cohort> cohorts,
+        int iterations,
+        SimulationSettings? simulationSettings = null,
+        int? minTime = null,
+        int? maxTime = null,
+        CancellationToken? cancellationToken = null)
+    {
+        ConcurrentBag<SimulationReport> reports = [];
+
+        await Task.WhenAll(Enumerable.Range(0, iterations).Select(_ => Task.Run(() =>
+        {
+            // Create a new Simulation instance for each iteration
+            Simulation simulation = new Simulation(cohorts, simulationSettings);
+
+            // Start the simulation and gather node visit records
+            IEnumerable<NodeVisitRecord> nodeVisitRecords = simulation.Start(cancellationToken);
+
+            // Generate a simulation report and add it to the concurrent collection
+            SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords, minTime, maxTime);
+            reports.Add(report);
+        }, cancellationToken ?? CancellationToken.None)));
+
+        return reports;
+    }
 
     public IEnumerable<NodeVisitRecord> Start(CancellationToken? cancellationToken = null)
     {
@@ -49,7 +76,7 @@ public class Simulation
 
         _state = new State()
         {
-            EventQueue = new (),
+            EventQueue = new(),
             Nodes = nodes.ToFrozenDictionary(x => x.Id, x => x),
             InputNodesById = inputNodesById
         };

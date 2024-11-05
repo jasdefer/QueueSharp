@@ -24,7 +24,7 @@ public enum QueueIsFullBehavior
 /// Implementations specify how an individual is routed from the origin node to the next destination.
 /// </summary>
 public interface IRouting
-{ 
+{
     /// <summary>
     /// Determines the routing decision after completing service at the origin node.
     /// </summary>

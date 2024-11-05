@@ -1,5 +1,4 @@
 ﻿using QueueSharp.Model.Components;
-using System.Collections.Immutable;
 
 namespace QueueSharp.Model.ServerSelector;
 
