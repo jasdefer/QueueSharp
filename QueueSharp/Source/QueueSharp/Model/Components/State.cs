@@ -1,11 +1,13 @@
-﻿using System.Collections.Immutable;
+﻿using QueueSharp.Model.Events;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace QueueSharp.Model.Components;
 internal class State
 {
 
     private readonly Dictionary<Individual, Dictionary<Node, Dictionary<int, NodeVisit>>> _nodeVisits = [];
-    internal required EventList EventList { get; init; }
+    internal required PriorityQueue<IEvent, int> EventQueue { get; init; }
     internal ImmutableArray<Node> Nodes { get; init; }
     internal IEnumerable<NodeVisitRecord> NodeVisitRecords => _nodeVisits
         .SelectMany(x => x.Value

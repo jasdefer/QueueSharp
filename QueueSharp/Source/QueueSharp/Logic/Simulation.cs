@@ -42,7 +42,7 @@ public class Simulation
 
         _state = new State()
         {
-            EventList = new EventList(),
+            EventQueue = new (),
             Nodes = nodes
         };
 
@@ -58,9 +58,9 @@ public class Simulation
 
     private void ProcessEvents(CancellationToken cancellationToken)
     {
-        while (!_state!.EventList.IsEmpty)
+        while (_state!.EventQueue.Count > 0)
         {
-            IEvent currentEvent = _state.EventList.Dequeue();
+            IEvent currentEvent = _state.EventQueue.Dequeue();
             if (_simulationSettings.MaxTime < currentEvent.Timestamp)
             {
                 _state.CancelSimulation();
@@ -127,7 +127,7 @@ public class Simulation
         }
         Individual individual = cohort.CreateIndividual();
         ArrivalEvent arrivalEvent = new(arrival!.Value, individual, destination);
-        _state!.EventList.Insert(arrivalEvent);
+        _state!.EventQueue.Enqueue(arrivalEvent, arrivalEvent.Timestamp);
     }
 
     private void CompleteService(Individual individual, Node origin, int arrivalTime, int server)
@@ -238,7 +238,7 @@ public class Simulation
             Server: selectedServer,
             Individual: individual,
             Node: node);
-        _state!.EventList.Insert(completeServiceEvent);
+        _state!.EventQueue.Enqueue(completeServiceEvent, completeServiceEvent.Timestamp);
         _state!.StartService(individual, node, arrivalTime, _time, selectedServer);
         return true;
     }
