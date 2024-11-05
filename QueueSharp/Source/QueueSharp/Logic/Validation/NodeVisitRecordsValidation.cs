@@ -9,7 +9,7 @@ internal class NodeVisitRecordsValidation
 {
     internal static void Validate(IEnumerable<NodeVisitRecord> nodeVisitRecords)
     {
-        foreach (var group in nodeVisitRecords.OfType<NodeServiceRecord>().GroupBy(x => new { x.Node, x.Server }))
+        foreach (var group in nodeVisitRecords.OfType<NodeServiceRecord>().GroupBy(x => new { x.NodeId, x.Server }))
         {
             int? previousExitTime = null;
             NodeServiceRecord? previous = null;

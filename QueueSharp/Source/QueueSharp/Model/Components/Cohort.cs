@@ -33,6 +33,8 @@ public record Cohort(string Id,
     IRouting Routing)
 {
     private int _id = 0;
+    private readonly FrozenDictionary<string, Node> _nodesById = PropertiesByNode
+        .ToFrozenDictionary(x => x.Key.Id, x => x.Key);
     internal Individual CreateIndividual()
     {
         if (_id > int.MaxValue - 10)
@@ -45,4 +47,6 @@ public record Cohort(string Id,
             Id = ++_id,
         };
     }
+
+    public NodeProperties GetPropertiesById(string nodeId) => PropertiesByNode[_nodesById[nodeId]];
 };

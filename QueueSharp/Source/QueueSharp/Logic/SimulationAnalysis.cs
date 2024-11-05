@@ -137,7 +137,7 @@ public static class SimulationAnalysis
         FrozenDictionary<string, SimulationNodeReport> simulationReport = nodeVisitRecords
             .Where(x => (!minTime.HasValue || x.ArrivalTime >= minTime) &&
                 (!maxTime.HasValue || maxTime >= x.ArrivalTime))
-            .GroupBy(x => x.Node.Id)
+            .GroupBy(x => x.NodeId)
             .ToFrozenDictionary(x => x.Key, nodeServiceRecords =>
             {
                 SetMetrics waitingDurationMetrics = nodeServiceRecords
@@ -196,11 +196,11 @@ public static class SimulationAnalysis
         stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual It\tCohort Id\tQueue Size at Arrival\tRejection\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
         foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords.OrderBy(x => x.ArrivalTime))
         {
-            stringBuilder.Append($"{nodeVisitRecord.ArrivalTime}\t{nodeVisitRecord.Node.Id}\t{nodeVisitRecord.Individual.Id}\t{nodeVisitRecord.Individual.Cohort.Id}\t{nodeVisitRecord.QueueSizeAtArrival}");
+            stringBuilder.Append($"{nodeVisitRecord.ArrivalTime}\t{nodeVisitRecord.NodeId}\t{nodeVisitRecord.Individual.Id}\t{nodeVisitRecord.Individual.Cohort.Id}\t{nodeVisitRecord.QueueSizeAtArrival}");
             switch (nodeVisitRecord)
             {
                 case NodeServiceRecord nodeServiceRecord:
-                    stringBuilder.Append($"\t\t{nodeServiceRecord.ServiceStartTime}\t{nodeServiceRecord.ServiceEndTime}\t{nodeServiceRecord.ExitTime}\t{nodeServiceRecord.QueueSizeAtExit}\t{nodeServiceRecord.Destination?.Id ?? ""}");
+                    stringBuilder.Append($"\t\t{nodeServiceRecord.ServiceStartTime}\t{nodeServiceRecord.ServiceEndTime}\t{nodeServiceRecord.ExitTime}\t{nodeServiceRecord.QueueSizeAtExit}\t{nodeServiceRecord.DestinationNodeId ?? ""}");
                     break;
                 case RejectionAtArrival:
                     stringBuilder.Append("\tRejected at Arrival");
@@ -221,10 +221,10 @@ public static class SimulationAnalysis
         Dictionary<string, Dictionary<int, int>> queueDeltaPerNodeAndTime = [];
         foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords)
         {
-            if (!queueDeltaPerNodeAndTime.TryGetValue(nodeVisitRecord.Node.Id, out Dictionary<int, int>? queueDeltaPerTime))
+            if (!queueDeltaPerNodeAndTime.TryGetValue(nodeVisitRecord.NodeId, out Dictionary<int, int>? queueDeltaPerTime))
             {
                 queueDeltaPerTime = [];
-                queueDeltaPerNodeAndTime.Add(nodeVisitRecord.Node.Id, queueDeltaPerTime);
+                queueDeltaPerNodeAndTime.Add(nodeVisitRecord.NodeId, queueDeltaPerTime);
             }
 
             switch (nodeVisitRecord)

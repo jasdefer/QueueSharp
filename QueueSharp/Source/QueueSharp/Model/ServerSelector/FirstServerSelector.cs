@@ -3,11 +3,11 @@
 namespace QueueSharp.Model.ServerSelector;
 public class FirstServerSelector : IServerSelector
 {
-    public bool CanSelectServer(Node node, out int? selectedServer)
+    public bool CanSelectServer(IReadOnlyList<Individual?> servers, out int? selectedServer)
     {
-        for (int i = 0; i < node.ServingIndividuals.Length; i++)
+        for (int i = 0; i < servers.Count; i++)
         {
-            if (node.ServingIndividuals[i] is null)
+            if (servers[i] is null)
             {
                 selectedServer = i;
                 return true;

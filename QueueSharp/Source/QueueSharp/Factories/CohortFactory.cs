@@ -17,7 +17,7 @@ public static class CohortFactory
         IServerSelector? serverSelector = null)
     {
         Node[] nodes = [
-            new Node(nodeId, serverCount: serverCount),
+            new Node(nodeId, ServerCount: serverCount),
             ];
         IEnumerable<(Interval, IDurationDistribution)> arrivalDistribtionList = [
             (new Interval(0, arrivalEnd), arrivalDistribution)
@@ -47,9 +47,9 @@ public static class CohortFactory
             (int)(2000 * arrivalInterfalFactor),
             (int)(3000 * arrivalInterfalFactor)];
         Node[] nodes = [
-            new Node("Ticket Gate", serverCount: 3),
-            new Node("Bag Inspection", serverCount: 4),
-            new Node("Person Metal Detector", serverCount: 2),
+            new Node("Ticket Gate", ServerCount: 3),
+            new Node("Bag Inspection", ServerCount: 4),
+            new Node("Person Metal Detector", ServerCount: 2),
             ];
         DurationDistributionSelector arrivalPersonsWithoutATicket = new([
             IntervalForConstantDuration(start: times[0], end: times[1], duration: (int)(30 * arrivalScaleFactor)),

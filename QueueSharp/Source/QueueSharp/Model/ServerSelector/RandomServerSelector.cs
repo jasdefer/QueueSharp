@@ -11,14 +11,14 @@ internal class RandomServerSelector : IServerSelector
             ? new Random(randomSeed.Value)
             : new Random();
     }
-    public bool CanSelectServer(Node node, out int? selectedServer)
+    public bool CanSelectServer(IReadOnlyList<Individual?> servers, out int? selectedServer)
     {
         IEnumerable<int> indices = Enumerable
-            .Range(0, node.ServerCount)
+            .Range(0, servers.Count)
             .OrderBy(x => _random.NextDouble());
         foreach (int i in indices)
         {
-            if (node.ServingIndividuals[i] is null)
+            if (servers is null)
             {
                 selectedServer = i;
                 return true;

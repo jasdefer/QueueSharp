@@ -6,4 +6,4 @@ namespace QueueSharp.Model.Events;
 [DebuggerDisplay("{Timestamp}: Arrival  at {Node.Id} from {Individual.Id}")]
 internal record ArrivalEvent(int Timestamp,
     Individual Individual,
-    Node Node) : IEvent;
+    SimulationNode Node) : IEvent;

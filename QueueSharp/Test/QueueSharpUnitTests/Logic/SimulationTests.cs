@@ -25,7 +25,7 @@ public class SimulationTests
         ImmutableArray<NodeServiceRecord> nodeServiceRecords = result.OfType<NodeServiceRecord>().ToImmutableArray();
         nodeServiceRecords.Should().HaveCount(100);
         nodeServiceRecords.Should().AllSatisfy(x => x.ServiceDuration.Should().Be(30));
-        nodeServiceRecords.Should().AllSatisfy(x => x.Destination.Should().BeNull());
+        nodeServiceRecords.Should().AllSatisfy(x => x.DestinationNodeId.Should().BeNull());
         for (int i = 1; i < nodeServiceRecords.Length; i++)
         {
             nodeServiceRecords[i].ArrivalTime.Should().Be(nodeServiceRecords[i - 1].ArrivalTime + 10);
@@ -150,9 +150,9 @@ public class SimulationTests
     {
         int randomSeed = 0;
         Node[] nodes = [
-            new Node("Node01", serverCount: 1, queueCapacity: 1),
-            new Node("Node02", serverCount: 1, queueCapacity: 1),
-            new Node("Node03", serverCount: 1, queueCapacity: 1),
+            new Node("Node01", ServerCount: 1, QueueCapacity: 1),
+            new Node("Node02", ServerCount: 1, QueueCapacity: 1),
+            new Node("Node03", ServerCount: 1, QueueCapacity: 1),
             ];
 
         WeightedArc[] arcs = [
@@ -209,8 +209,8 @@ public class SimulationTests
         report.NodeReportsByNodeId[nodes[2].Id].ServiceDurationMetrics.Count.Should().Be(86);
         report.NodeReportsByNodeId[nodes[2].Id].BlockDurationMetrics.Sum.Should().Be(0);
 
-        nodeVisitRecords.Where(x => x.Node.Id == nodes[0].Id).Sum(x => x.ArrivalTime).Should().Be(2356200);
-        nodeVisitRecords.Where(x => x.Node.Id == nodes[1].Id).Sum(x => x.ArrivalTime).Should().Be(1703940);
-        nodeVisitRecords.Where(x => x.Node.Id == nodes[2].Id).Sum(x => x.ArrivalTime).Should().Be(1701180);
+        nodeVisitRecords.Where(x => x.NodeId == nodes[0].Id).Sum(x => x.ArrivalTime).Should().Be(2356200);
+        nodeVisitRecords.Where(x => x.NodeId == nodes[1].Id).Sum(x => x.ArrivalTime).Should().Be(1703940);
+        nodeVisitRecords.Where(x => x.NodeId == nodes[2].Id).Sum(x => x.ArrivalTime).Should().Be(1701180);
     }
 }

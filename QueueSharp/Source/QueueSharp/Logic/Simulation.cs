@@ -3,6 +3,7 @@ using QueueSharp.Model.DurationDistribution;
 using QueueSharp.Model.Events;
 using QueueSharp.Model.Exceptions;
 using QueueSharp.Model.Routing;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 namespace QueueSharp.Logic;
@@ -35,15 +36,22 @@ public class Simulation
         _time = 0;
 
         // Extract all distinct nodes from the cohorts
-        ImmutableArray<Node> nodes = Cohorts
+        ImmutableArray<SimulationNode> nodes = Cohorts
             .SelectMany(x => x.PropertiesByNode.Keys)
             .Distinct()
+            .Select(x => new SimulationNode(x.Id, x.ServerCount, x.QueueCapacity))
             .ToImmutableArray();
+
+        FrozenDictionary<string, Node> inputNodesById = Cohorts
+            .SelectMany(x => x.PropertiesByNode.Keys)
+            .Distinct()
+            .ToFrozenDictionary(x => x.Id, x => x);
 
         _state = new State()
         {
             EventQueue = new (),
-            Nodes = nodes
+            Nodes = nodes.ToFrozenDictionary(x => x.Id, x => x),
+            InputNodesById = inputNodesById
         };
 
         // Create the initial arrival event for each cohort and node
@@ -51,7 +59,7 @@ public class Simulation
         {
             foreach ((Node node, NodeProperties nodeProperties) in cohort.PropertiesByNode)
             {
-                CreateArrivalEvent(cohort, node, true);
+                CreateArrivalEvent(cohort, _state.Nodes[node.Id], true);
             }
         }
     }
@@ -97,7 +105,7 @@ public class Simulation
         };
     }
 
-    private void IndividualArrives(Individual individual, Node destination)
+    private void IndividualArrives(Individual individual, SimulationNode destination)
     {
         _state!.AddArrival(individual, destination, _time);
         if (destination.IsQueueEmpty)
@@ -114,9 +122,9 @@ public class Simulation
         destination.Queue.Enqueue((individual, _time));
     }
 
-    private void CreateArrivalEvent(Cohort cohort, Node destination, bool isInitialArrival = false)
+    private void CreateArrivalEvent(Cohort cohort, SimulationNode destination, bool isInitialArrival = false)
     {
-        NodeProperties nodeProperties = cohort.PropertiesByNode[destination];
+        NodeProperties nodeProperties = cohort.GetPropertiesById(destination.Id);
         bool hasArrival = nodeProperties.ArrivalDistributionSelector.TryGetNextTime(time:
                     _time,
                     out int? arrival,
@@ -130,7 +138,7 @@ public class Simulation
         _state!.EventQueue.Enqueue(arrivalEvent, arrivalEvent.Timestamp);
     }
 
-    private void CompleteService(Individual individual, Node origin, int arrivalTime, int server)
+    private void CompleteService(Individual individual, SimulationNode origin, int arrivalTime, int server)
     {
         _state!.CompleteService(individual, origin, arrivalTime, _time);
         bool individualLeavesOrigin = TryLeaveIndividual(individual, origin, arrivalTime, server);
@@ -144,11 +152,11 @@ public class Simulation
 
         // Handle Overflow queue
         // This overflow handling can be chained if multiple blocked nodes are connected
-        Queue<Node> overflowHandling = [];
+        Queue<SimulationNode> overflowHandling = [];
         overflowHandling.Enqueue(origin);
         while (overflowHandling.Count > 0)
         {
-            Node nodeWithOverflowQueue = overflowHandling.Dequeue();
+            SimulationNode nodeWithOverflowQueue = overflowHandling.Dequeue();
             if (nodeWithOverflowQueue.OverflowQueue.Count == 0)
             {
                 break;
@@ -165,9 +173,9 @@ public class Simulation
         }
     }
 
-    private bool TryLeaveIndividual(Individual individual, Node origin, int arrivalTime, int server)
+    private bool TryLeaveIndividual(Individual individual, SimulationNode origin, int arrivalTime, int server)
     {
-        RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(origin, _state!.Nodes);
+        RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(_state!.InputNodesById[origin.Id], _state!.InputNodesById.Values);
         switch (routingDecision)
         {
             case ExitSystem:
@@ -175,10 +183,10 @@ public class Simulation
                 return true;
             case SeekDestination seekDestination:
                 // The individual tries to seek the chosen destination
-                if (!seekDestination.Destination.IsQueueFull)
+                if (!_state.Nodes[seekDestination.Destination.Id].IsQueueFull)
                 {
-                    _state!.ExitToDestination(individual, origin, arrivalTime, _time, seekDestination.Destination);
-                    IndividualArrives(individual, seekDestination.Destination);
+                    _state!.ExitToDestination(individual, origin, arrivalTime, _time, _state.Nodes[seekDestination.Destination.Id]);
+                    IndividualArrives(individual, _state.Nodes[seekDestination.Destination.Id]);
                     return true;
                 }
                 // Queue at destination is full
@@ -186,12 +194,13 @@ public class Simulation
                 {
                     case QueueIsFullBehavior.RejectIndividual:
                         _state!.Exit(individual, origin, arrivalTime, _time);
-                        _state!.AddArrival(individual, seekDestination.Destination, _time);
-                        _state!.Reject(individual, seekDestination.Destination, _time, RejectionReason.QueueFull);
+                        SimulationNode destination = _state.Nodes[seekDestination.Destination.Id];
+                        _state!.AddArrival(individual, destination, _time);
+                        _state!.Reject(individual, destination, _time, RejectionReason.QueueFull);
                         return true;
                     case QueueIsFullBehavior.WaitAndBlockCurrentServer:
                         Overflow overflow = new(individual, origin, server, arrivalTime);
-                        seekDestination.Destination.OverflowQueue.Enqueue(overflow);
+                        _state.Nodes[seekDestination.Destination.Id].OverflowQueue.Enqueue(overflow);
                         return false;
                     default:
                         throw new NotImplementedEventException(seekDestination.QueueIsFullBehavior.ToString());
@@ -202,10 +211,10 @@ public class Simulation
         }
     }
 
-    private void TryServerIndividual(Individual individual, Node destination, int arrivalTime)
+    private void TryServerIndividual(Individual individual, SimulationNode destination, int arrivalTime)
     {
-        NodeProperties nodeProperties = individual.Cohort.PropertiesByNode[destination];
-        bool canSelectServer = nodeProperties.ServerSelector.CanSelectServer(destination, out int? selectedServer);
+        NodeProperties nodeProperties = individual.Cohort.GetPropertiesById(destination.Id);
+        bool canSelectServer = nodeProperties.ServerSelector.CanSelectServer(_state!.Nodes[destination.Id].ServingIndividuals, out int? selectedServer);
         if (!canSelectServer)
         {
             if (destination.IsQueueFull)
@@ -224,7 +233,7 @@ public class Simulation
         TryStartService(individual, destination, nodeProperties.ServiceDurationSelector, arrivalTime, selectedServer.Value);
     }
 
-    private bool TryStartService(Individual individual, Node node, DurationDistributionSelector serviceDurationSelector, int arrivalTime, int selectedServer)
+    private bool TryStartService(Individual individual, SimulationNode node, DurationDistributionSelector serviceDurationSelector, int arrivalTime, int selectedServer)
     {
         node.ServingIndividuals[selectedServer] = individual;
         bool canCompleteService = serviceDurationSelector.TryGetNextTime(_time, out int? serviceCompleted, false);
@@ -243,7 +252,7 @@ public class Simulation
         return true;
     }
 
-    private void IndividualLeftNode(int server, Node origin)
+    private void IndividualLeftNode(int server, SimulationNode origin)
     {
         while (!origin.IsQueueEmpty)
         {
@@ -251,7 +260,7 @@ public class Simulation
             // If the individual is rejected, try the next individual
             // If the individual can get served, break this loop
             (Individual nextIndividual, int nextIndividualsArrivalTime) = origin.Queue.Dequeue();
-            bool canStartService = TryStartService(nextIndividual, origin, nextIndividual.Cohort.PropertiesByNode[origin].ServiceDurationSelector, nextIndividualsArrivalTime, server);
+            bool canStartService = TryStartService(nextIndividual, origin, nextIndividual.Cohort.GetPropertiesById(origin.Id).ServiceDurationSelector, nextIndividualsArrivalTime, server);
             if (canStartService)
             {
                 return;
@@ -268,7 +277,7 @@ public class Simulation
         {
             return;
         }
-        foreach (Node node in _state.Nodes)
+        foreach (SimulationNode node in _state.Nodes.Values)
         {
             node.Queue.Clear();
             node.OverflowQueue.Clear();
