@@ -69,7 +69,7 @@ public class DurationDistributionSelectorTests
         List<(Interval, IDurationDistribution)> distributions = [
                 (new Interval(10, 20), new ConstantDuration(10))
             ];
-        DurationDistributionSelector selector = new(distributions, 1);
+        DurationDistributionSelector selector = new(distributions);
 
         double averageArrival = 0;
         int numberOfSuccess = 0;

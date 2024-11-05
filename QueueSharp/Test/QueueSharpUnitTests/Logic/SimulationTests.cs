@@ -20,7 +20,7 @@ public class SimulationTests
             serviceDistribution: new ConstantDuration(30),
             arrivalEnd: 1000,
             serviceEnd: 2000);
-        Simulation simulation = new(cohorts);
+        Simulation simulation = new(cohorts, randomSeed: 1);
         ImmutableArray<NodeVisitRecord> result = simulation.Start().ToImmutableArray();
         ImmutableArray<NodeServiceRecord> nodeServiceRecords = result.OfType<NodeServiceRecord>().ToImmutableArray();
         nodeServiceRecords.Should().HaveCount(100);
@@ -38,7 +38,7 @@ public class SimulationTests
     public void ThreeNode()
     {
         Cohort[] cohorts = CohortFactory.GetEventEntrance(null, 0.1, 1);
-        Simulation simulation = new(cohorts);
+        Simulation simulation = new(cohorts, randomSeed: 1);
         ImmutableArray<NodeVisitRecord> result = simulation.Start().ToImmutableArray();
         NodeVisitRecordsValidation.Validate(result);
     }
@@ -54,7 +54,7 @@ public class SimulationTests
                 arrivalEnd: 20000,
                 serviceEnd: 20000);
         SimulationSettings simulationSettings = new(14400);
-        Simulation simulation = new(cohorts, simulationSettings);
+        Simulation simulation = new(cohorts, simulationSettings, randomSeed: 1);
         ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
         SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
         NodeVisitRecordsValidation.Validate(nodeVisitRecords);
@@ -75,7 +75,7 @@ public class SimulationTests
                 arrivalEnd: 100000000,
                 serviceEnd: 100000000);
         SimulationSettings simulationSettings = new(50000000);
-        Simulation simulation = new(cohorts, simulationSettings);
+        Simulation simulation = new(cohorts, simulationSettings, randomSeed: 1);
         ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
         SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
         NodeVisitRecordsValidation.Validate(nodeVisitRecords);
@@ -180,7 +180,7 @@ public class SimulationTests
         };
         Cohort cohort = new Cohort("Stools", propertiesByNode.ToFrozenDictionary(), routing);
         SimulationSettings simulationSettings = new SimulationSettings(MaxTime: simulationDuration);
-        Simulation simulation = new([cohort], simulationSettings);
+        Simulation simulation = new([cohort], simulationSettings, randomSeed: 1);
         ImmutableArray<NodeVisitRecord> nodeVisitRecords = simulation.Start().ToImmutableArray();
         NodeVisitRecordsValidation.Validate(nodeVisitRecords);
         SimulationReport report = SimulationAnalysis.GetSimulationReport(nodeVisitRecords);
