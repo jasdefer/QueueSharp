@@ -111,7 +111,7 @@ public class Simulation
             _state!.Reject(individual, destination, _time, RejectionReason.QueueFull);
             return;
         }
-        destination.Queue.Add((individual, _time));
+        destination.Queue.Enqueue((individual, _time));
     }
 
     private void CreateArrivalEvent(Cohort cohort, Node destination, bool isInitialArrival = false)
@@ -154,8 +154,7 @@ public class Simulation
                 break;
             }
 
-            Overflow overflow = nodeWithOverflowQueue.OverflowQueue[0];
-            nodeWithOverflowQueue.OverflowQueue.RemoveAt(0);
+            Overflow overflow = nodeWithOverflowQueue.OverflowQueue.Dequeue();
             IndividualArrives(overflow.Individual, nodeWithOverflowQueue);
 
             IndividualLeftNode(overflow.BlockedServer, overflow.BlockedNode);
@@ -192,7 +191,7 @@ public class Simulation
                         return true;
                     case QueueIsFullBehavior.WaitAndBlockCurrentServer:
                         Overflow overflow = new(individual, origin, server, arrivalTime);
-                        seekDestination.Destination.OverflowQueue.Add(overflow);
+                        seekDestination.Destination.OverflowQueue.Enqueue(overflow);
                         return false;
                     default:
                         throw new NotImplementedEventException(seekDestination.QueueIsFullBehavior.ToString());
@@ -214,7 +213,7 @@ public class Simulation
                 _state!.Reject(individual, destination, arrivalTime, RejectionReason.CannotSelectServer, _time);
                 return;
             }
-            destination.Queue.Add((individual, arrivalTime));
+            destination.Queue.Enqueue((individual, arrivalTime));
             return;
         }
         if (selectedServer >= destination.ServerCount ||
@@ -251,8 +250,7 @@ public class Simulation
             // Try to start the service of the next individual
             // If the individual is rejected, try the next individual
             // If the individual can get served, break this loop
-            (Individual nextIndividual, int nextIndividualsArrivalTime) = origin.Queue[0];
-            origin.Queue.RemoveAt(0);
+            (Individual nextIndividual, int nextIndividualsArrivalTime) = origin.Queue.Dequeue();
             bool canStartService = TryStartService(nextIndividual, origin, nextIndividual.Cohort.PropertiesByNode[origin].ServiceDurationSelector, nextIndividualsArrivalTime, server);
             if (canStartService)
             {

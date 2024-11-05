@@ -32,13 +32,13 @@ public class Node
     /// <summary>
     /// The list of individuals and their arrival time at this node who are waiting in the queue to be served by one of the servers.
     /// </summary>
-    public List<(Individual, int)> Queue { get; } = [];
+    public Queue<(Individual, int)> Queue { get; } = [];
 
     /// <summary>
     /// Individuals targeting this node after leaving other nodes are prevented from enqueueing if this node's queue is full.
     /// They can reject or block the current server of the origin node and queue up in this <see cref="OverflowQueue"/> until capacity in the destination queue is available again.
     /// </summary>
-    public List<Overflow> OverflowQueue { get; } = [];
+    public Queue<Overflow> OverflowQueue { get; } = [];
 
     public Node(string id, int serverCount, int? queueCapacity = null)
     {
