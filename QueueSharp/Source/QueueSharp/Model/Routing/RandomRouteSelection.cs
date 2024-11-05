@@ -30,7 +30,7 @@ public class RandomRouteSelection : IRouting
         _totalWeight = _arcsByOrigin.ToFrozenDictionary(x => x.Key, x => x.Value.Sum(y => y.Weight));
     }
 
-    public RoutingDecision RouteAfterService(Node origin, State state)
+    public RoutingDecision RouteAfterService(Node origin, IEnumerable<Node> systemNodes)
     {
         bool containsNode = _arcsByOrigin.TryGetValue(origin, out ImmutableArray<WeightedArc> outoingArcs);
         if (!containsNode || outoingArcs.Length == 0)

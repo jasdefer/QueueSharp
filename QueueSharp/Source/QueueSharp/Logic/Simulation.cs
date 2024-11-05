@@ -168,7 +168,7 @@ public class Simulation
 
     private bool TryLeaveIndividual(Individual individual, Node origin, int arrivalTime, int server)
     {
-        RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(origin, _state!);
+        RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(origin, _state!.Nodes);
         switch (routingDecision)
         {
             case ExitSystem:

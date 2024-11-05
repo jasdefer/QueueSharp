@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace QueueSharp.Model.Events;
 
 [DebuggerDisplay("{Timestamp}: Completed {Individual.Id} at {Node.Id}")]
-public record CompleteServiceEvent(int Timestamp,
+internal record CompleteServiceEvent(int Timestamp,
     int Server,
     Individual Individual,
     Node Node,

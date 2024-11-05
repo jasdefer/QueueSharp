@@ -91,14 +91,14 @@ public static class CohortFactory
         FrozenDictionary<Node, NodeProperties> propertiesByNodeTicketholdersWithBag = new Dictionary<Node, NodeProperties>()
         {
             {nodes[0], new NodeProperties(arrivalPersonsWithATicketWithBag, ticketCheckpointService, serverSelector??new FirstServerSelector()) },
-            {nodes[1], new NodeProperties(DurationDistributionSelector.Empty, bagInspection, serverSelector??new FirstServerSelector()) },
-            {nodes[2], new NodeProperties(DurationDistributionSelector.Empty, metalDetectorServiceWithBag, serverSelector??new FirstServerSelector()) },
+            {nodes[1], new NodeProperties(DurationDistributionSelector.None, bagInspection, serverSelector??new FirstServerSelector()) },
+            {nodes[2], new NodeProperties(DurationDistributionSelector.None, metalDetectorServiceWithBag, serverSelector??new FirstServerSelector()) },
         }.ToFrozenDictionary();
 
         FrozenDictionary<Node, NodeProperties> propertiesByNodeTicketholdersWithoutBag = new Dictionary<Node, NodeProperties>()
         {
             {nodes[0], new NodeProperties(arrivalPersonsWithATicketWithoutBag, ticketCheckpointService, serverSelector??new FirstServerSelector()) },
-            {nodes[2], new NodeProperties(DurationDistributionSelector.Empty, metalDetectorServiceWithoutBag, serverSelector??new FirstServerSelector()) },
+            {nodes[2], new NodeProperties(DurationDistributionSelector.None, metalDetectorServiceWithoutBag, serverSelector??new FirstServerSelector()) },
         }.ToFrozenDictionary();
         Cohort[] cohorts = [
                 new Cohort("Without Ticket", propertiesByNodeNonTicketholders, nonTicketHolderRouting),

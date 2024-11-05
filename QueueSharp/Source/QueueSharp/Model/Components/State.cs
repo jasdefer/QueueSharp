@@ -1,13 +1,13 @@
 ﻿using System.Collections.Immutable;
 
 namespace QueueSharp.Model.Components;
-public class State
+internal class State
 {
 
     private readonly Dictionary<Individual, Dictionary<Node, Dictionary<int, NodeVisit>>> _nodeVisits = [];
-    public required EventList EventList { get; init; }
-    public ImmutableArray<Node> Nodes { get; init; }
-    public IEnumerable<NodeVisitRecord> NodeVisitRecords => _nodeVisits
+    internal required EventList EventList { get; init; }
+    internal ImmutableArray<Node> Nodes { get; init; }
+    internal IEnumerable<NodeVisitRecord> NodeVisitRecords => _nodeVisits
         .SelectMany(x => x.Value
             .SelectMany(y => y.Value
                 .Select(z => Map(x.Key, y.Key, z.Key, z.Value))));

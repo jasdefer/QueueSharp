@@ -1,7 +1,7 @@
 ﻿using QueueSharp.Model.Events;
 
 namespace QueueSharp.Model.Components;
-public class EventList
+internal class EventList
 {
     /// <summary>
     /// The list of events
@@ -30,5 +30,5 @@ public class EventList
         _events.Add(newEvent);
     }
 
-    public bool IsEmpty => _events.Count == 0;
+    internal bool IsEmpty => _events.Count == 0;
 }

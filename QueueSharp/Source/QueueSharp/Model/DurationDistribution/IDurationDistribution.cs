@@ -1,20 +1,15 @@
-﻿using QueueSharp.StructureTypes;
+﻿namespace QueueSharp.Model.DurationDistribution;
 
-namespace QueueSharp.Model.DurationDistribution;
+/// <summary>
+/// Defines an interface for generating a duration based on a specific distribution strategy.
+/// Implementations provide logic to determine the duration for various events or processes in a system.
+/// </summary>
 public interface IDurationDistribution
 {
+    /// <summary>
+    /// Generates a duration based on the configured distribution.
+    /// </summary>
+    /// <returns>An integer representing the duration.</returns>
     int GetDuration();
-}
-
-public static class DurationDistributionHelper
-{
-    public static DurationDistributionSelector ToSelector(this IDurationDistribution durationDistribution,
-        int start,
-        int end,
-        int? randomSeed = null,
-        double? initialArrivalFraction = null)
-    {
-        return new DurationDistributionSelector([(new Interval(start, end), durationDistribution)], randomSeed, initialArrivalFraction);
-    }
 }
 

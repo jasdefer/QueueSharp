@@ -179,13 +179,13 @@ public class SimulationTests
             },
             {
                 nodes[1],
-                new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.Empty,
+                new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.None,
                     ServiceDurationSelector: DistributionFactory.CreateConstant(start: 0, end: simulationDuration * 2, duration: 400, ++randomSeed),
                     ServerSelector: serverSelector)
             },
             {
                 nodes[2],
-                new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.Empty,
+                new NodeProperties(ArrivalDistributionSelector: DurationDistributionSelector.None,
                     ServiceDurationSelector: DistributionFactory.CreateConstant(start: 0, end: simulationDuration * 2, duration: 450, ++randomSeed),
                     ServerSelector: serverSelector)
             },

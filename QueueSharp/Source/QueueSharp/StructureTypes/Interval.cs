@@ -1,4 +1,13 @@
 ﻿namespace QueueSharp.StructureTypes;
+
+/// <summary>
+/// Represents a range between two integer values, with a defined start and end. 
+/// Provides methods to check if a value lies within the range, if two intervals overlap, 
+/// and overrides for equality comparisons and string representation.
+/// 
+/// Use this struct to define intervals or ranges in time, position, or any other dimension 
+/// where an ordered start and end are meaningful.
+/// </summary>
 public readonly struct Interval : IEquatable<Interval>
 {
     public int Start { get; }

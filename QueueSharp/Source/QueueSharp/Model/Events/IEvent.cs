@@ -1,5 +1,5 @@
 ﻿namespace QueueSharp.Model.Events;
-public interface IEvent
+internal interface IEvent
 {
     int Timestamp { get; }
 }

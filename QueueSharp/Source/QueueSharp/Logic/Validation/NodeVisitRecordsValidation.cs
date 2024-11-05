@@ -7,7 +7,7 @@ namespace QueueSharp.Logic.Validation;
 /// </summary>
 internal class NodeVisitRecordsValidation
 {
-    public static void Validate(IEnumerable<NodeVisitRecord> nodeVisitRecords)
+    internal static void Validate(IEnumerable<NodeVisitRecord> nodeVisitRecords)
     {
         foreach (var group in nodeVisitRecords.OfType<NodeServiceRecord>().GroupBy(x => new { x.Node, x.Server }))
         {
@@ -62,7 +62,7 @@ internal class NodeVisitRecordsValidation
         }
     }
 
-    public static void Validate(NodeServiceRecord nodeServiceRecord)
+    internal static void Validate(NodeServiceRecord nodeServiceRecord)
     {
         if (nodeServiceRecord.QueueSizeAtArrival < 0)
         {
