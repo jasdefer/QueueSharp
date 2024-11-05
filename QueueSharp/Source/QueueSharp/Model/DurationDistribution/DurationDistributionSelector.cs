@@ -18,26 +18,20 @@ public record DurationDistributionSelector : IntervalDictionary<IDurationDistrib
     /// Represents a <see cref="DurationDistributionSelector"/> instance with no duration distributions.
     /// </summary>
     public readonly static DurationDistributionSelector None = new DurationDistributionSelector([]);
-    private readonly Random _random;
     private readonly double? _initialArrivalFraction;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DurationDistributionSelector"/> class with specified duration distributions.
     /// </summary>
     /// <param name="durationDistributions">A collection of tuples containing intervals and corresponding duration distributions.</param>
-    /// <param name="randomSeed">Optional seed for random number generation to control initial arrival randomness.</param>
     /// <param name="initialArrivalFraction">
     /// Optional fraction to control the initial arrival time within the first interval.
     /// A value between 0 and 1, where null defaults to random generation.
     /// </param>
     public DurationDistributionSelector(IEnumerable<(Interval, IDurationDistribution)> durationDistributions,
-        int? randomSeed = null,
         double? initialArrivalFraction = null)
         : base(durationDistributions)
     {
-        _random = randomSeed is null
-            ? new Random()
-            : new Random(randomSeed.Value);
         _initialArrivalFraction = initialArrivalFraction;
     }
 
@@ -58,11 +52,11 @@ public record DurationDistributionSelector : IntervalDictionary<IDurationDistrib
     /// configured duration distribution. It supports an initial arrival adjustment with a specified fraction, 
     /// and applies overflow handling if the interval ends before the calculated arrival.
     /// </remarks>
-    internal bool TryGetNextTime(int time, out int? arrival, bool isInitialArrival = false)
+    internal bool TryGetNextTime(int time, Random random, out int? arrival, bool isInitialArrival = false)
     {
         arrival = 0;
         double fraction = isInitialArrival
-            ? _initialArrivalFraction ?? _random.NextDouble()
+            ? _initialArrivalFraction ?? random.NextDouble()
             : 1;
 
         for (int i = 0; i < _values.Length; i++)
@@ -75,7 +69,7 @@ public record DurationDistributionSelector : IntervalDictionary<IDurationDistrib
 
             time = Math.Max(time, interval.Start);
 
-            int currentDuration = (int)Math.Round(fraction * distribution.GetDuration());
+            int currentDuration = (int)Math.Round(fraction * distribution.GetDuration(random));
             int end = time + currentDuration;
             if (end <= interval.End)
             {

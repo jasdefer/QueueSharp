@@ -3,21 +3,16 @@
 namespace QueueSharp.Model.DurationDistribution;
 public class ExponentialDistribution : IDurationDistribution
 {
-    private readonly Random _random;
     private readonly double _rate;
-
-    public ExponentialDistribution(double rate,
-        int? randomSeed)
+    public ExponentialDistribution(double rate)
     {
-        _random = randomSeed is null
-            ? new Random()
-            : new Random(randomSeed.Value);
         _rate = rate;
     }
 
-    public int GetDuration()
+    public int GetDuration(Random? random)
     {
-        int duration = (int)Math.Round(Exponential.Sample(_random, _rate));
+        random ??= new Random();
+        int duration = (int)Math.Round(Exponential.Sample(random, _rate));
         return duration;
     }
 }

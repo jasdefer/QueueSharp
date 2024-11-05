@@ -7,7 +7,7 @@ public class ConstantDuration : IDurationDistribution
     {
         _duration = duration;
     }
-    public int GetDuration()
+    public int GetDuration(Random? random)
     {
         return _duration;
     }

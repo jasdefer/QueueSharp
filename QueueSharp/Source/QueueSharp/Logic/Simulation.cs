@@ -12,13 +12,18 @@ public class Simulation
 {
     private State? _state;
     private int _time = 0;
+    private readonly Random _random;
     private readonly SimulationSettings _simulationSettings;
 
     public Simulation(IEnumerable<Cohort> cohorts,
-        SimulationSettings? simulationSettings = null)
+        SimulationSettings? simulationSettings = null,
+        int? randomSeed = null)
     {
         Cohorts = cohorts.ToImmutableArray();
         _simulationSettings = simulationSettings ?? new SimulationSettings(MaxTime: null);
+        _random = randomSeed.HasValue
+            ? new Random(randomSeed.Value)
+            : new Random();
     }
 
     public ImmutableArray<Cohort> Cohorts { get; }
@@ -33,10 +38,10 @@ public class Simulation
     {
         ConcurrentBag<SimulationReport> reports = [];
 
-        await Task.WhenAll(Enumerable.Range(0, iterations).Select(_ => Task.Run(() =>
+        await Task.WhenAll(Enumerable.Range(0, iterations).Select(iteration => Task.Run(() =>
         {
             // Create a new Simulation instance for each iteration
-            Simulation simulation = new Simulation(cohorts, simulationSettings);
+            Simulation simulation = new Simulation(cohorts, simulationSettings, randomSeed: iteration);
 
             // Start the simulation and gather node visit records
             IEnumerable<NodeVisitRecord> nodeVisitRecords = simulation.Start(cancellationToken);
@@ -152,8 +157,9 @@ public class Simulation
     private void CreateArrivalEvent(Cohort cohort, SimulationNode destination, bool isInitialArrival = false)
     {
         NodeProperties nodeProperties = cohort.GetPropertiesById(destination.Id);
-        bool hasArrival = nodeProperties.ArrivalDistributionSelector.TryGetNextTime(time:
-                    _time,
+        bool hasArrival = nodeProperties.ArrivalDistributionSelector.TryGetNextTime(
+                    time: _time,
+                    random: _random,
                     out int? arrival,
                     isInitialArrival: isInitialArrival);
         if (!hasArrival)
@@ -202,7 +208,7 @@ public class Simulation
 
     private bool TryLeaveIndividual(Individual individual, SimulationNode origin, int arrivalTime, int server)
     {
-        RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(_state!.InputNodesById[origin.Id], _state!.InputNodesById.Values);
+        RoutingDecision routingDecision = individual.Cohort.Routing.RouteAfterService(_state!.InputNodesById[origin.Id], _state!.InputNodesById.Values, _random);
         switch (routingDecision)
         {
             case ExitSystem:
@@ -263,7 +269,7 @@ public class Simulation
     private bool TryStartService(Individual individual, SimulationNode node, DurationDistributionSelector serviceDurationSelector, int arrivalTime, int selectedServer)
     {
         node.ServingIndividuals[selectedServer] = individual;
-        bool canCompleteService = serviceDurationSelector.TryGetNextTime(_time, out int? serviceCompleted, false);
+        bool canCompleteService = serviceDurationSelector.TryGetNextTime(_time, _random, out int? serviceCompleted, false);
         if (!canCompleteService)
         {
             _state!.Reject(individual, node, arrivalTime, RejectionReason.CannotCompleteService, _time);

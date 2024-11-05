@@ -10,6 +10,6 @@ public interface IDurationDistribution
     /// Generates a duration based on the configured distribution.
     /// </summary>
     /// <returns>An integer representing the duration.</returns>
-    int GetDuration();
+    int GetDuration(Random? random);
 }
 

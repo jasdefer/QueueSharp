@@ -19,7 +19,6 @@ public class QueueBenchmark
     [Benchmark]
     public int RunThreeNodeExampleFromCiw()
     {
-        int randomSeed = 0;
         Node coldFood = new Node("Cold Food", 1);
         Node hotFood = new Node("Hot Food", 2);
         Node till = new Node("Till", 2);
@@ -28,24 +27,24 @@ public class QueueBenchmark
         WeightedArc coldToTill = new WeightedArc(coldFood, till, 0.7);
         WeightedArc hotToTill = new WeightedArc(hotFood, till, 1);
 
-        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], null, 1);
+        IRouting routing = new RandomRouteSelection([coldToHot, coldToTill, hotToTill], null);
 
         IServerSelector serverSelector = new FirstServerSelector();
         Dictionary<Node, NodeProperties> propertiesByNode = new Dictionary<Node, NodeProperties>
         {
             {
-                coldFood, new NodeProperties(DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.003, ++randomSeed),
-                    DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.01, ++randomSeed),
+                coldFood, new NodeProperties(DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.003),
+                    DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.01),
                     serverSelector)
             },
             {
-                hotFood, new NodeProperties(DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.002, ++randomSeed),
-                    DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.004, ++randomSeed),
+                hotFood, new NodeProperties(DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.002),
+                    DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.004),
                     serverSelector)
             },
             {
                 till, new NodeProperties(DurationDistributionSelector.None,
-                    DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.005, ++randomSeed),
+                    DistributionFactory.CreateExponential(start: 0, end: SimulationRuntime * 2, 0.005),
                     serverSelector)
             }
         };

@@ -9,19 +9,14 @@ public class RandomRouteSelection : IRouting
 {
     private readonly FrozenDictionary<Node, ImmutableArray<WeightedArc>> _arcsByOrigin;
     private readonly FrozenDictionary<Node, double> _totalWeight;
-    private readonly Random _random;
     private readonly FrozenDictionary<Node, QueueIsFullBehavior> _queueIsFullBehavior;
 
     public RandomRouteSelection(IEnumerable<WeightedArc> arcs,
-        FrozenDictionary<Node, QueueIsFullBehavior>? queueIsFullBehavior,
-        int? randomSeed)
+        FrozenDictionary<Node, QueueIsFullBehavior>? queueIsFullBehavior)
     {
         _arcsByOrigin = arcs.GroupBy(x => x.Origin)
             .ToFrozenDictionary(x => x.Key,
             x => x.ToImmutableArray());
-        _random = randomSeed is null
-            ? new Random()
-            : new Random(randomSeed.Value);
         _queueIsFullBehavior = queueIsFullBehavior ?? arcs
             .Select(x => x.Origin)
             .Union(arcs.Select(x => x.Destination))
@@ -30,7 +25,7 @@ public class RandomRouteSelection : IRouting
         _totalWeight = _arcsByOrigin.ToFrozenDictionary(x => x.Key, x => x.Value.Sum(y => y.Weight));
     }
 
-    public RoutingDecision RouteAfterService(Node origin, IEnumerable<Node> systemNodes)
+    public RoutingDecision RouteAfterService(Node origin, IEnumerable<Node> systemNodes, Random? random)
     {
         bool containsNode = _arcsByOrigin.TryGetValue(origin, out ImmutableArray<WeightedArc> outoingArcs);
         if (!containsNode || outoingArcs.Length == 0)
@@ -44,7 +39,8 @@ public class RandomRouteSelection : IRouting
             return new SeekDestination(destination, _queueIsFullBehavior[destination]);
         }
 
-        double randomValue = _random.NextDouble() * _totalWeight[origin];
+        random ??= new Random();
+        double randomValue = random.NextDouble() * _totalWeight[origin];
         double cumulativeWeight = 0;
         for (int i = 0; i < outoingArcs.Length; i++)
         {

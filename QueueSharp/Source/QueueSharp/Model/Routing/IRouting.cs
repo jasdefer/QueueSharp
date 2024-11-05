@@ -31,7 +31,7 @@ public interface IRouting
     /// <param name="origin">The node where service was just completed.</param>
     /// <param name="systemNodes">A collection of all nodes in the system, which can influence the routing decisions.</param>
     /// <returns>A <see cref="RoutingDecision"/> that specifies the next action for the individual.</returns>
-    RoutingDecision RouteAfterService(Node origin, IEnumerable<Node> systemNodes);
+    RoutingDecision RouteAfterService(Node origin, IEnumerable<Node> systemNodes, Random? random);
 }
 
 /// <summary>

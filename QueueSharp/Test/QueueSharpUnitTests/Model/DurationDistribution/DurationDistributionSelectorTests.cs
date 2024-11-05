@@ -4,6 +4,7 @@ using QueueSharp.StructureTypes;
 namespace QueueSharpUnitTests.Model.DurationDistribution;
 public class DurationDistributionSelectorTests
 {
+    private static readonly Random _random = new Random(1);
     private static readonly List<(Interval, IDurationDistribution)> _distributions = [
                 (new Interval(10, 20), new ConstantDuration(10)),
                 (new Interval(50, 60), new ConstantDuration(20)),
@@ -17,7 +18,7 @@ public class DurationDistributionSelectorTests
     [InlineData(10)]
     public void TryGetDuration_Between_0_And_10(int time)
     {
-        bool canGet = _selector.TryGetNextTime(time, out int? arrival, false);
+        bool canGet = _selector.TryGetNextTime(time, _random, out int? arrival, false);
         canGet.Should().BeTrue();
         arrival.Should().Be(20);
     }
@@ -25,7 +26,7 @@ public class DurationDistributionSelectorTests
     [Fact]
     public void TryGetDuration_At_15()
     {
-        bool canGet = _selector.TryGetNextTime(15, out int? arrival, false);
+        bool canGet = _selector.TryGetNextTime(15, _random, out int? arrival, false);
         canGet.Should().BeTrue();
         arrival.Should().Be(60);
     }
@@ -36,7 +37,7 @@ public class DurationDistributionSelectorTests
     [InlineData(50)]
     public void TryGetDuration_Between_20_And_50(int time)
     {
-        bool canGet = _selector.TryGetNextTime(time, out int? arrival, false);
+        bool canGet = _selector.TryGetNextTime(time, _random, out int? arrival, false);
         canGet.Should().BeTrue();
         arrival.Should().Be(120);
     }
@@ -44,7 +45,7 @@ public class DurationDistributionSelectorTests
     [Fact]
     public void TryGetDuration_At_55()
     {
-        bool canGet = _selector.TryGetNextTime(55, out int? arrival, false);
+        bool canGet = _selector.TryGetNextTime(55, _random, out int? arrival, false);
         canGet.Should().BeTrue();
         arrival.Should().Be(130);
     }
@@ -58,7 +59,7 @@ public class DurationDistributionSelectorTests
     [InlineData(140)]
     public void TryGetDuration_Between_60_And_140(int time)
     {
-        bool canGet = _selector.TryGetNextTime(time, out int? arrival, false);
+        bool canGet = _selector.TryGetNextTime(time, _random, out int? arrival, false);
         canGet.Should().BeFalse();
     }
 
@@ -75,7 +76,7 @@ public class DurationDistributionSelectorTests
         int numberOfIterations = 1000;
         for (int i = 0; i < numberOfIterations; i++)
         {
-            bool canGet = selector.TryGetNextTime(15, out int? arrival, true);
+            bool canGet = selector.TryGetNextTime(15, _random, out int? arrival, true);
             if (canGet)
             {
                 numberOfSuccess++;
@@ -100,7 +101,7 @@ public class DurationDistributionSelectorTests
             ];
         DurationDistributionSelector selector = new(distributions, 1);
 
-        bool canGet = selector.TryGetNextTime(15, out int? arrival, false);
+        bool canGet = selector.TryGetNextTime(15, _random, out int? arrival, false);
         canGet.Should().BeFalse();
         arrival.Should().BeNull();
     }
@@ -117,7 +118,7 @@ public class DurationDistributionSelectorTests
         int numberOfIterations = 1000;
         for (int i = 0; i < numberOfIterations; i++)
         {
-            bool canGet = selector.TryGetNextTime(15, out int? arrival, true);
+            bool canGet = selector.TryGetNextTime(15, _random, out int? arrival, true);
             canGet.Should().BeTrue();
             arrival.Should().NotBeNull();
             arrival.Should().BeInRange(15, 35);
