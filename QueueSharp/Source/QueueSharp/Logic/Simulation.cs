@@ -295,13 +295,13 @@ public class Simulation
 
     private bool TryStartService(Individual individual, SimulationNode node, DurationDistributionSelector serviceDurationSelector, int arrivalTime, int selectedServer)
     {
-        node.ServingIndividuals[selectedServer] = individual;
         bool canCompleteService = serviceDurationSelector.TryGetNextTime(_time, _random, out int? serviceCompleted, false);
         if (!canCompleteService)
         {
             _state!.Reject(individual, node, arrivalTime, RejectionReason.CannotCompleteService, _time);
             return false;
         }
+        node.ServingIndividuals[selectedServer] = individual;
         CompleteServiceEvent completeServiceEvent = new(Timestamp: serviceCompleted!.Value,
             ArrivalTime: arrivalTime,
             Server: selectedServer,
