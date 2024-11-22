@@ -8,6 +8,10 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 namespace QueueSharp.Logic;
+
+/// <summary>
+/// The core class conduction the discrete event queeing simulation.
+/// </summary>
 public class Simulation
 {
     private State? _state;
@@ -15,6 +19,12 @@ public class Simulation
     private readonly Random _random;
     private readonly SimulationSettings _simulationSettings;
 
+    /// <summary>
+    /// Create a new instance.
+    /// </summary>
+    /// <param name="cohorts">Contains all properties of the individuals and nodes and their behavior during the simulation.</param>
+    /// <param name="simulationSettings">Define additional simulation settings.</param>
+    /// <param name="randomSeed">The seed used for randomizing decisions and times during the simulation.</param>
     public Simulation(IEnumerable<Cohort> cohorts,
         SimulationSettings? simulationSettings = null,
         int? randomSeed = null)
@@ -26,8 +36,20 @@ public class Simulation
             : new Random();
     }
 
+    /// <summary>
+    /// The collection of all <see cref="Cohort"/> set in the constructor.
+    /// </summary>
     public ImmutableArray<Cohort> Cohorts { get; }
 
+    /// <summary>
+    /// Execute multiple simulation runs in parallel. 
+    /// </summary>
+    /// <param name="cohorts">Each simulation run utilize the same cohorts and their properties.</param>
+    /// <param name="iterations">The number of simulation runs executed in parallel.</param>
+    /// <param name="simulationSettings">Each simulation run use the same <see cref="SimulationSettings"/>.</param>
+    /// <param name="minTime">The <see cref="SimulationReport"/> will only consider events starting after this time.</param>
+    /// <param name="maxTime">The <see cref="SimulationReport"/> will only consider events ending before this time.</param>
+    /// <param name="cancellationToken">Can cancel all simulation runs.</param>
     public static async Task<IEnumerable<SimulationReport>> RunSimulationsInParallel(
         IEnumerable<Cohort> cohorts,
         int iterations,
@@ -54,6 +76,11 @@ public class Simulation
         return reports;
     }
 
+    /// <summary>
+    /// Start the simulation. Consider calling <see cref="ClearState"/> if multiple simulation runs are conducted in sequence.
+    /// </summary>
+    /// <param name="cancellationToken">Can cancel all simulation run.</param>
+    /// <returns>A collection of all events in the simulation.</returns>
     public IEnumerable<NodeVisitRecord> Start(CancellationToken? cancellationToken = null)
     {
         _time = 0;
@@ -304,6 +331,9 @@ public class Simulation
         return;
     }
 
+    /// <summary>
+    /// Clears the state of the simulation. Can be used in between multiple simulation runs. Consider creating a new simulation instance to get independent results.
+    /// </summary>
     public void ClearState()
     {
         if (_state is null)

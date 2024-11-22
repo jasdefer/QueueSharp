@@ -5,6 +5,10 @@ using System.Collections.Frozen;
 using System.Text;
 
 namespace QueueSharp.Logic;
+
+/// <summary>
+/// Analyze the results of one are many simulation runs.
+/// </summary>
 public static class SimulationAnalysis
 {
     /// <summary>
@@ -132,6 +136,12 @@ public static class SimulationAnalysis
             Sum: setMetricsSet.Select(x => x.Sum).ComputeSetMetrics());
     }
 
+    /// <summary>
+    /// Create a <see cref="SimulationReport"/>.
+    /// </summary>
+    /// <param name="nodeVisitRecords">Represent the simulation result with all events computed during a simulation run.</param>
+    /// <param name="minTime">Only visit records with an arrival after this time are considered.</param>
+    /// <param name="maxTime">Only visit records with an arrival before this time are considered.</param>
     public static SimulationReport GetSimulationReport(IEnumerable<NodeVisitRecord> nodeVisitRecords, int? minTime = null, int? maxTime = null)
     {
         FrozenDictionary<string, SimulationNodeReport> simulationReport = nodeVisitRecords
@@ -168,6 +178,11 @@ public static class SimulationAnalysis
         return new SimulationReport(simulationReport);
     }
 
+    /// <summary>
+    /// Merge multiple <see cref="SimulationReport"/> and compute summarizing metrics for each node.
+    /// </summary>
+    /// <param name="simulationReports"></param>
+    /// <returns>Returns a <see cref="SimulationAggregationNodeReport"/> for each node in the simulation. The node id is the key of the dictionary.</returns>
     public static FrozenDictionary<string, SimulationAggregationNodeReport> Merge(IEnumerable<SimulationReport> simulationReports)
     {
         HashSet<string> nodeIds = simulationReports
@@ -190,7 +205,11 @@ public static class SimulationAnalysis
         return mergedNodeReports.ToFrozenDictionary();
     }
 
-    internal static string ToCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
+    /// <summary>
+    /// Get a string returning all node visit records in a csv format with a \t as the separator.
+    /// </summary>
+    /// <param name="nodeVisitRecords"></param>
+    public static string ToCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
     {
         StringBuilder stringBuilder = new();
         stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual It\tCohort Id\tQueue Size at Arrival\tRejection\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
@@ -216,7 +235,11 @@ public static class SimulationAnalysis
         return stringBuilder.ToString();
     }
 
-    internal static string GetQueueLengthPerNodeOverTimeCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
+    /// <summary>
+    /// Return a csv formatted string using a \t as a separator. Every event changing the queue length of a node is stored in a table.
+    /// </summary>
+    /// <param name="nodeVisitRecords"></param>
+    public static string GetQueueLengthPerNodeOverTimeCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
     {
         Dictionary<string, Dictionary<int, int>> queueDeltaPerNodeAndTime = [];
         foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords)

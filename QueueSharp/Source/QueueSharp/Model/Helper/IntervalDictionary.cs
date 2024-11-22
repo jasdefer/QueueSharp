@@ -3,10 +3,23 @@ using QueueSharp.StructureTypes;
 using System.Collections.Immutable;
 
 namespace QueueSharp.Model.Helper;
+
+/// <summary>
+/// A general helper structure to represent a collection of values and intervals.
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 public record IntervalDictionary<TValue>
 {
+    /// <summary>
+    /// Stores the collection of intervals and the corresponding values.
+    /// </summary>
     protected readonly ImmutableArray<(Interval, TValue)> _values;
 
+    /// <summary>
+    /// Create a new <see cref="IntervalDictionary{TValue}"/>. The Intervals cannot overlap.
+    /// </summary>
+    /// <param name="values"></param>
+    /// <exception cref="InvalidInputException"></exception>
     public IntervalDictionary(IEnumerable<(Interval, TValue)> values)
     {
         _values = values
@@ -18,6 +31,13 @@ public record IntervalDictionary<TValue>
         }
     }
 
+    /// <summary>
+    /// Find the interval which bounds the given time and return the corresponding value.
+    /// </summary>
+    /// <param name="time">The time for which the value is requested.</param>
+    /// <param name="index">The index of the interval value tuple, which bounds the given <paramref name="time"/>.</param>
+    /// <param name="value">The requested value.</param>
+    /// <returns>Returns true if an interval and the corresponding value can be found and false if no interval bounds the <paramref name="time"/>.</returns>
     public bool TryGetAtTime(int time, out int? index, out TValue? value)
     {
         index = null;
