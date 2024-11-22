@@ -1,0 +1,36 @@
+name: Publish QueueSharp to NuGet
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-nuget:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Restore dependencies
+        run: dotnet restore QueueSharp/QueueSharp.sln
+
+      - name: Build solution
+        run: dotnet build QueueSharp/QueueSharp.sln --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test QueueSharp/QueueSharp.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish to NuGet
+        if: success()
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet pack QueueSharp/Source/QueueSharp/QueueSharp.csproj --configuration Release --output ./artifacts
+          dotnet nuget push ./artifacts/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
