@@ -6,9 +6,9 @@ using QueueSharp.StructureTypes;
 using System.Collections.Frozen;
 
 namespace QueueSharp.Factories;
-public static class CohortFactory
+internal static class CohortFactory
 {
-    public static Cohort[] GetSingleNode(string nodeId,
+    internal static Cohort[] GetSingleNode(string nodeId,
         int serverCount,
         IDurationDistribution arrivalDistribution,
         IDurationDistribution serviceDistribution,
@@ -38,7 +38,7 @@ public static class CohortFactory
         return cohorts;
     }
 
-    public static Cohort[] GetEventEntrance(IServerSelector? serverSelector = null,
+    internal static Cohort[] GetEventEntrance(IServerSelector? serverSelector = null,
         double arrivalScaleFactor = 1,
         double arrivalInterfalFactor = 1)
     {

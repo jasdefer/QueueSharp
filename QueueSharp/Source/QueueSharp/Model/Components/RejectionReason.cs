@@ -1,5 +1,8 @@
 ﻿namespace QueueSharp.Model.Components;
 
+/// <summary>
+/// An individual can be rejected and removed from the system based on these reason.
+/// </summary>
 public enum RejectionReason
 {
     /// <summary>

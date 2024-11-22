@@ -38,6 +38,7 @@ public record DurationDistributionSelector : IntervalDictionary<IDurationDistrib
     /// <summary>
     /// Attempts to calculate the next arrival time based on the current time and interval distributions.
     /// </summary>
+    /// <param name="random"></param>
     /// <param name="time">The current time to calculate the next arrival from.</param>
     /// <param name="arrival">
     /// When this method returns, contains the calculated arrival time if successful, or null if no valid 

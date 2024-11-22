@@ -2,6 +2,10 @@
 using QueueSharp.StructureTypes;
 
 namespace QueueSharp.Factories;
+
+/// <summary>
+/// Simplifies the creation of <see cref="DurationDistributionSelector"/>
+/// </summary>
 public static class DistributionFactory
 {
     #region Constant Duration
@@ -13,7 +17,6 @@ public static class DistributionFactory
     /// <param name="end">The end time of the interval.</param>
     /// <param name="min">The minimum duration for the uniform distribution.</param>
     /// <param name="max">The maximum duration for the uniform distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with a uniform distribution for the specified interval.</returns>
     public static DurationDistributionSelector CreateUniform(int start, int end, int min, int max, double? arrivalFraction = null)
@@ -27,7 +30,6 @@ public static class DistributionFactory
     /// <param name="interval">The interval for the duration distribution.</param>
     /// <param name="min">The minimum duration for the uniform distribution.</param>
     /// <param name="max">The maximum duration for the uniform distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with a uniform distribution for the specified interval.</returns>
     public static DurationDistributionSelector CreateUniform(Interval interval, int min, int max, double? arrivalFraction = null)
@@ -39,7 +41,6 @@ public static class DistributionFactory
     /// Creates a uniform duration distribution selector with multiple interval parameters.
     /// </summary>
     /// <param name="parameters">A collection of parameters where each tuple represents an interval with a minimum and maximum duration for the uniform distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with multiple uniform distributions over specified intervals.</returns>
     public static DurationDistributionSelector CreateUniform(IEnumerable<(Interval, int, int)> parameters, double? arrivalFraction = null)
@@ -58,7 +59,6 @@ public static class DistributionFactory
     /// <param name="start">The start time of the interval.</param>
     /// <param name="end">The end time of the interval.</param>
     /// <param name="duration">The fixed duration value for the constant distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with a constant duration distribution for the specified interval.</returns>
     public static DurationDistributionSelector CreateConstant(int start, int end, int duration, double? arrivalFraction = null)
@@ -71,7 +71,6 @@ public static class DistributionFactory
     /// </summary>
     /// <param name="interval">The interval for the duration distribution.</param>
     /// <param name="duration">The fixed duration value for the constant distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with a constant duration distribution for the specified interval.</returns>
     public static DurationDistributionSelector CreateConstant(Interval interval, int duration, double? arrivalFraction = null)
@@ -83,7 +82,6 @@ public static class DistributionFactory
     /// Creates a constant duration distribution selector with multiple interval parameters.
     /// </summary>
     /// <param name="parameters">A collection of parameters where each tuple represents an interval and a fixed duration for the constant distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with multiple constant distributions over specified intervals.</returns>
     public static DurationDistributionSelector CreateConstant(IEnumerable<(Interval, int)> parameters, double? arrivalFraction = null)
@@ -102,7 +100,6 @@ public static class DistributionFactory
     /// <param name="start">The start time of the interval.</param>
     /// <param name="end">The end time of the interval.</param>
     /// <param name="rate">The rate parameter for the exponential distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with an exponential duration distribution for the specified interval.</returns>
     public static DurationDistributionSelector CreateExponential(int start, int end, double rate, double? arrivalFraction = null)
@@ -115,7 +112,6 @@ public static class DistributionFactory
     /// </summary>
     /// <param name="interval">The interval for the duration distribution.</param>
     /// <param name="rate">The rate parameter for the exponential distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with an exponential duration distribution for the specified interval.</returns>
     public static DurationDistributionSelector CreateExponential(Interval interval, double rate, double? arrivalFraction = null)
@@ -127,7 +123,6 @@ public static class DistributionFactory
     /// Creates an exponential duration distribution selector with multiple interval parameters.
     /// </summary>
     /// <param name="parameters">A collection of parameters where each tuple represents an interval and a rate for the exponential distribution.</param>
-    /// <param name="randomSeed">Optional seed for random generation, ensuring reproducibility.</param>
     /// <param name="arrivalFraction">Optional fraction to adjust initial arrival time for the first generated interval.</param>
     /// <returns>A <see cref="DurationDistributionSelector"/> configured with multiple exponential distributions over specified intervals.</returns>
     public static DurationDistributionSelector CreateExponential(IEnumerable<(Interval, double)> parameters, double? arrivalFraction = null)
