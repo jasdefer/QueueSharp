@@ -48,5 +48,9 @@ public record Cohort(string Id,
         };
     }
 
+    /// <summary>
+    /// Get the properties of this cohort for a given <paramref name="nodeId"/>.
+    /// </summary>
+    /// <param name="nodeId">The id of the node for which the properties are returned.</param>
     public NodeProperties GetPropertiesById(string nodeId) => PropertiesByNode[_nodesById[nodeId]];
 };
