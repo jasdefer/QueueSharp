@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="103.277 135.869 61.438 61.438" xmlns="http://www.w3.org/2000/svg">
+  <g transform="matrix(1, 0, 0, 1, -1.353845, 0.515749)">
+    <title>Sharp</title>
+    <g transform="matrix(1, 0, 0, 1, 0, -19.068459)">
+      <title>Horizontal</title>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px;" x1="104.88" y1="193.854" x2="159.881" y2="193.854"/>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px;" x1="110.819" y1="176.427" x2="165.82" y2="176.427"/>
+    </g>
+    <g style="">
+      <title>Diagonal</title>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px;" x1="96.589" y1="166.072" x2="151.59" y2="166.072" transform="matrix(-0.325568, 0.945519, -0.945519, -0.325568, 321.51323, 102.810771)"/>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px;" x1="117.298" y1="166.072" x2="172.299" y2="166.072" transform="matrix(-0.325568, 0.945519, -0.945519, -0.325568, 348.964414, 83.230025)"/>
+    </g>
+  </g>
+  <g style="" transform="matrix(0.493755, 0, 0, 0.493755, 27.645184, 70.034119)">
+    <title>Individual</title>
+    <path style="fill: rgb(251, 192, 45);" d="M 156.648 248.212 C 156.648 248.212 143.794 215.73 171.599 215.19 C 199.404 214.65 189.24 247.997 189.24 247.997">
+      <title>Body</title>
+    </path>
+    <circle style="fill: rgb(251, 192, 45);" cx="172.367" cy="200.893" r="12.279">
+      <title>Head</title>
+    </circle>
+  </g>
+  <g style="" transform="matrix(0.493755, 0, 0, 0.493755, 48.889011, 58.74527)">
+    <title>Individual</title>
+    <path style="fill: rgb(251, 192, 45);" d="M 156.648 248.212 C 156.648 248.212 143.794 215.73 171.599 215.19 C 199.404 214.65 189.24 247.997 189.24 247.997">
+      <title>Body</title>
+    </path>
+    <circle style="fill: rgb(251, 192, 45);" cx="172.367" cy="200.893" r="12.279">
+      <title>Head</title>
+    </circle>
+  </g>
+  <g style="" transform="matrix(0.493755, 0, 0, 0.493755, 70.132843, 47.456417)">
+    <title>Individual</title>
+    <path style="fill: rgb(251, 192, 45);" d="M 156.648 248.212 C 156.648 248.212 143.794 215.73 171.599 215.19 C 199.404 214.65 189.24 247.997 189.24 247.997">
+      <title>Body</title>
+    </path>
+    <circle style="fill: rgb(251, 192, 45);" cx="172.367" cy="200.893" r="12.279">
+      <title>Head</title>
+    </circle>
+  </g>
+  <g transform="matrix(1, 0, 0, 1, -1.35386, 0.515742)" style="">
+    <title>Sharp</title>
+    <g transform="matrix(1, 0, 0, 1, 0, -19.068459)">
+      <title>Horizontal</title>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px; stroke-opacity: 0.46;" x1="104.88" y1="193.854" x2="159.881" y2="193.854"/>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px; stroke-opacity: 0.46;" x1="110.819" y1="176.427" x2="165.82" y2="176.427"/>
+    </g>
+    <g style="">
+      <title>Diagonal</title>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px; stroke-opacity: 0.46;" x1="96.589" y1="166.072" x2="151.59" y2="166.072" transform="matrix(-0.325568, 0.945519, -0.945519, -0.325568, 321.51323, 102.810771)"/>
+      <line style="stroke: rgb(66, 66, 66); stroke-width: 5px; stroke-opacity: 0.46;" x1="117.298" y1="166.072" x2="172.299" y2="166.072" transform="matrix(-0.325568, 0.945519, -0.945519, -0.325568, 348.964414, 83.230025)"/>
+    </g>
+  </g>
+</svg>
