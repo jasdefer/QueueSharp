@@ -32,6 +32,7 @@ flowchart LR
 
 # Algorithm
 
+This section describes how the discrete event simulation to handle queuing is implemented.
 ```mermaid
 flowchart TD
     B[Initialize Event List]
@@ -40,15 +41,24 @@ flowchart TD
     Time[Advance System Clock]
     E[Process event]
     A[Log Processed Event]
+    Check{{Max simulation duration reached?}}
+    Cancel{{Is cancellation requested?}}
     Start-->B
     B-->C
     C-- no -->D
-    D-->Time
+    D--> Check
+    Check -- yes -->Stop
+    Check -- no -->Time
     Time-->E
     E-->A
-    A-->C
+    A-->Cancel
+    Cancel -- no -->C
+    Cancel -- yes -->Stop
     C-- yes -->Stop
 ```
+
+- **Initialize Event List**: [Details](#initialize-event-list)
+- **Process event**: [Details](#process-event)
 
 ## Initialize Event List
 
@@ -69,58 +79,105 @@ Process the event based on it's type.
 
 ### Arrival Event
 
-Input:
+```mermaid
+flowchart TD
+    Arrive[Individual Arrives at Node]
+    CreateNewArrival[Add an arrival event for a new individual to the Event List]
+    Arrive --> CreateNewArrival --> Stop
+```
+- **Individual Arrives at Node**: [Details](#individual-arrives-at-node)
+- **Add an arrival event for a new individual to the Event List**: Arrival events are generated whenever an individual arrives at a node. For example, when Individual A arrives at a node, the system determines a random time interval before scheduling the arrival of the next individual (e.g., Individual B) at the same node. This process ensures a continuous flow of arrivals based on random durations.
 
-- Entity Class
-- Number of arriving entities
-- Node
+### Complete Service Event
+
+```mermaid
+flowchart TD
+    Route[Get routing decision]
+    Exit{{Individual exit system?}}
+    ExitOrigin[Individual exits origin]
+    Stop
+    Destination[Individual seeks destination node]
+    QueueFull{{Is the queue at the destination node full?}}
+    BlockIfFull{{Individual blocks current node}}
+    Arrive[Individual Arrives at destination]
+    HandleOverflow[Handle Overflow]
+    Route-->Exit
+    Exit -- yes -->ExitOrigin
+    Exit -- no --> Destination
+    Destination --> QueueFull
+    QueueFull -- yes --> BlockIfFull
+    BlockIfFull -- yes --> Stop
+    BlockIfFull -- no --> ExitOrigin
+    QueueFull -- no --> Arrive
+    Arrive --> ExitOrigin
+    ExitOrigin --> HandleOverflow
+    HandleOverflow --> Stop
+```
+- **Individual Arrives at destination**: [Details](#individual-arrives-at-node)
+- **Individual exits origin**: [Details](#individual-leaves-node)
+- **HandleOverflow**: [Details](#handle-overflow-for-node)
+
+## Shared methods
+
+### Individual Arrives at Node
 
 ```mermaid
 flowchart TD
     A{{Is NodeQueue empty?}}
     C{{Any idle server?}}
     MakeBusy[Mark Server as busy]
-    D[Add entities to queue]
-    E[Create Service Completion Event]
-    F[Add created event to the Event List]
-    Stop
+    D{{Is queue full?}}
+    F[Add new Service Completion Event to the Event List]
+    Reject[Reject individual]
     A -- yes --> C
     C -- yes --> MakeBusy
     A -- no --> D
-    MakeBusy --> E
+    MakeBusy --> F
     C -- no --> D
-    E-->F
-    F-->Stop
-    D --> Stop
+    D -- yes --> Reject
+    D -- no --> Stop
+    F--> Stop
 ```
 
-### Complete Service Event
+### Individual leaves node
+```mermaid
+flowchart TD
+    QueueEmpty{{Is Queue Empty?}}
+    MakeServerIdle[Mark the individual serving server idle]
+    NewCompletion[Add new Service Completion Event to the Event List]
+    CanStart{{Can the next Individual in the queue start the service?}}
+    RejectIndividual[Reject Individual]
+    QueueEmpty -- yes --> MakeServerIdle
+    QueueEmpty -- no --> CanStart
+    CanStart -- yes --> NewCompletion
+    CanStart -- no --> RejectIndividual
+    RejectIndividual --> QueueEmpty
+    NewCompletion --> Stop
+    MakeServerIdle --> Stop
+```
+
+### Handle Overflow for node
 
 ```mermaid
 flowchart TD
-    IsSink{{Is current Node a Sink?}}
-    SelectDestination[Select destination Node]
-    IsQueueFull{{Is the target node queue full?}}
-    AddToOverflowQueue[Add Entity to Overflow Queue of Destination Node]
-    CreateArrivalEvent[Create Arrival Event]
-    MarkServerIdle[Mark Server Idle]
-    IsQueueEmpty{{Is Queue from leaving Node empty?}}
-    DequeueEntity[Dequeue entity]
-    CreateCompleteServiceEvent[Create Complete Service Event]
-    CreateOverflowArrivalEvent[Create Arrival Event for overflow entity]
-    IsSink -- yes --> IsQueueEmpty
-    IsSink -- no --> SelectDestination
-    SelectDestination --> IsQueueFull
-    IsQueueFull -- no --> CreateArrivalEvent
-    CreateArrivalEvent --> IsQueueEmpty
-    IsQueueFull -- yes --> AddToOverflowQueue
-    AddToOverflowQueue --> Stop
-    IsQueueEmpty -- yes --> MarkServerIdle
-    MarkServerIdle --> IsOverflowQueueEmpty
-    IsQueueEmpty -- no --> DequeueEntity
-    DequeueEntity --> CreateCompleteServiceEvent
-    CreateCompleteServiceEvent --> IsOverflowQueueEmpty
-    IsOverflowQueueEmpty -- yes --> Stop
-    IsOverflowQueueEmpty -- no --> CreateOverflowArrivalEvent
-    CreateOverflowArrivalEvent --> Stop
+    Initialize[Initialize queue of nodes]
+    Add[Add input node to queue]
+    IsQueueEmpty{{Is queue empty?}}
+    OverflowEmpty{{Is overflow of the node empty?}}
+    GetIndividual[Get Individual from overflow]
+    GetNext[Get next node from queue]
+    IndividualLeavesOrigin[Overflow individual leaves origin]
+    IndividualArrivesAtDestination[Overflow individual arrives at destination]
+    AddOriginToQueue[Add the origin node to the node queue]
+    Initialize --> Add --> IsQueueEmpty
+    IsQueueEmpty -- yes --> Stop
+    IsQueueEmpty -- no --> GetNext
+    GetNext --> OverflowEmpty
+    OverflowEmpty -- yes --> Stop
+    OverflowEmpty -- no --> GetIndividual
+    GetIndividual --> IndividualLeavesOrigin --> IndividualArrivesAtDestination --> AddOriginToQueue 
+    AddOriginToQueue --> IsQueueEmpty
 ```
+- **Get Individual from overflow**: If an individual blocks an origin node and wishes to go to a destination node with a full queue, it is stored as an overflow individual at the destination node.
+- **Overflow individual leaves origin**: [Details](#individual-leaves-node)
+- **Overflow individual arrives at destination**: [Details](#individual-arrives-at-node)
