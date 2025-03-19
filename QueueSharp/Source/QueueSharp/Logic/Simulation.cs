@@ -161,7 +161,8 @@ public class Simulation
                 return;
             default:
                 throw new NotImplementedEventException(@event.GetType().Name);
-        };
+        }
+        ;
     }
 
     private void IndividualArrives(Individual individual, SimulationNode destination)

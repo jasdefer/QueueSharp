@@ -193,6 +193,7 @@ public static class SimulationAnalysis
         foreach (string nodeId in nodeIds)
         {
             SimulationNodeReport[] simulationNodeReports = simulationReports
+                .Where(x => x.NodeReportsByNodeId.ContainsKey(nodeId))
                 .Select(x => x.NodeReportsByNodeId[nodeId])
                 .ToArray();
             SimulationAggregationNodeReport mergedNodeReport = new(WaitingTimeMetrics: simulationNodeReports.Select(x => x.WaitingTimeMetrics).Merge(),
