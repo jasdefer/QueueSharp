@@ -6,12 +6,12 @@ on:
       - main
 
 jobs:
-  build:
+  deploy-to-nuget:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -25,7 +25,7 @@ jobs:
         run: dotnet build QueueSharp/QueueSharp.sln --configuration Release --no-restore
 
       - name: Run unit tests
-        run: dotnet test QueueSharp/Test/QueueSharpUnitTests/QueueSharpUnitTests.csproj --no-build --verbosity normal
+        run: dotnet test QueueSharp/QueueSharp.sln --configuration Release --no-build --verbosity normal
 
       - name: Publish to NuGet
         if: success()
