@@ -213,7 +213,7 @@ public static class SimulationAnalysis
     public static string ToCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords)
     {
         StringBuilder stringBuilder = new();
-        stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual It\tCohort Id\tQueue Size at Arrival\tRejection\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
+        stringBuilder.AppendLine("Arrival Time\tNode Id\tIndividual Id\tCohort Id\tQueue Size at Arrival\tRejection\tService Start Time\tService End Time\tExit Time\tQueue Size at Exit\tDestination Node Id");
         foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords.OrderBy(x => x.ArrivalTime))
         {
             stringBuilder.Append($"{nodeVisitRecord.ArrivalTime}\t{nodeVisitRecord.NodeId}\t{nodeVisitRecord.Individual.Id}\t{nodeVisitRecord.Individual.Cohort.Id}\t{nodeVisitRecord.QueueSizeAtArrival}");

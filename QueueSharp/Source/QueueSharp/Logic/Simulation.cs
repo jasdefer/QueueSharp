@@ -29,7 +29,9 @@ public class Simulation
         SimulationSettings? simulationSettings = null,
         int? randomSeed = null)
     {
-        Cohorts = cohorts.ToImmutableArray();
+        Cohorts = cohorts
+            .OrderBy(x => x.Id)
+            .ToImmutableArray();
         _simulationSettings = simulationSettings ?? new SimulationSettings(MaxTime: null);
         _random = randomSeed.HasValue
             ? new Random(randomSeed.Value)
@@ -98,6 +100,7 @@ public class Simulation
         ImmutableArray<SimulationNode> nodes = Cohorts
             .SelectMany(x => x.PropertiesByNode.Keys)
             .Distinct()
+            .OrderBy(x => x.Id)
             .Select(x => new SimulationNode(x.Id, x.ServerCount, x.QueueCapacity))
             .ToImmutableArray();
 
@@ -116,7 +119,7 @@ public class Simulation
         // Create the initial arrival event for each cohort and node
         foreach (Cohort cohort in Cohorts)
         {
-            foreach ((Node node, NodeProperties nodeProperties) in cohort.PropertiesByNode)
+            foreach ((Node node, NodeProperties nodeProperties) in cohort.PropertiesByNode.OrderBy(x => x.Key.Id))
             {
                 CreateArrivalEvent(cohort, _state.Nodes[node.Id], true);
             }
