@@ -239,8 +239,7 @@ public static class SimulationAnalysis
     /// <summary>
     /// Return a csv formatted string using a \t as a separator. Every event changing the queue length of a node is stored in a table.
     /// </summary>
-    /// <param name="nodeVisitRecords"></param>
-    public static string GetQueueLengthPerNodeOverTimeCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords, int serverCount)
+    public static string GetQueueLengthPerNodeOverTimeCsv(IEnumerable<NodeVisitRecord> nodeVisitRecords, IDictionary<string, int> serverCountPerNodeId)
     {
         Dictionary<string, Dictionary<int, int>> queueDeltaPerNodeAndTime = [];
         foreach (NodeVisitRecord nodeVisitRecord in nodeVisitRecords)
@@ -280,7 +279,7 @@ public static class SimulationAnalysis
             foreach ((int time, int delta) in queueDeltaPerNodeAndTime[nodeId].OrderBy(x => x.Key))
             {
                 queueLength += delta;
-                stringBuilder.AppendLine($"{nodeId}\t{time}\t{Math.Max(0,queueLength - serverCount)}");
+                stringBuilder.AppendLine($"{nodeId}\t{time}\t{Math.Max(0,queueLength - serverCountPerNodeId[nodeId])}");
             }
         }
 
